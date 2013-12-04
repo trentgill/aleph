@@ -151,6 +151,11 @@ static void handler_HidConnect(s32 data) {
 static void handler_HidDisconnect(s32 data) { ;; }
 static void handler_HidByte(s32 data) { ;; }
 
+static void handler_I2C(s32 data) { 
+  print_dbg("\r\n slave rx: ");
+  print_dbg_char_hex(i2c_buffer[data]);
+}
+
 static void handler_SerialParamNum(s32 data) { serial_param_num(data); }
 static void handler_SerialParamInfo(s32 data) { serial_param_info(data); }
 static void handler_SerialParamGet(s32 data) { serial_param_get(data); }
@@ -194,6 +199,7 @@ static inline void assign_main_event_handlers(void) {
   app_event_handlers[ kEventHidConnect ]	= &handler_HidConnect ;
   app_event_handlers[ kEventHidDisconnect ]	= &handler_HidDisconnect ;
   app_event_handlers[ kEventHidByte ]	= &handler_HidByte ;
+  app_event_handlers[ kEventI2C ] = &handler_I2C ;
 
   app_event_handlers[ kEventSerialParamNum ] = &handler_SerialParamNum ;
   app_event_handlers[ kEventSerialParamInfo ] = &handler_SerialParamInfo ;
@@ -241,8 +247,8 @@ static void init_avr32(void) {
   register_interrupts();
   // initialize the OLED screen
   init_oled();
-  // init twi
-  init_twi();
+  // init i2c to slave mode
+  init_i2c();
 
   // enable interrupts
   cpu_irq_enable();

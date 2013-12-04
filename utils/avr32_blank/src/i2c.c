@@ -9,6 +9,17 @@
 #include "i2c.h"
 
 
+//----------------------------
+//----- extern vars
+volatile u8 i2c_buffer[I2C_BUFFER_SIZE];
+
+
+//----------------------------
+//----- static vars
+static u16 i2c_read_pos = 0;
+static u16 i2c_write_pos = 0;
+
+
 /* typedef struct */
 /* { */
 /*   //! TWI chip address to communicate with. */
@@ -51,9 +62,20 @@ u8 i2c_slave_tx(void) {
 // handler for rx events
 //__attribute__((__interrupt__))
 void i2c_slave_rx(u8 value) {
-  print_dbg("\r\n slave rx: ");
-  print_dbg_char_hex(value);
-  gpio_toggle_pin(LED_MODE_PIN);
+  // print_dbg("\r\n slave rx: ");
+  // print_dbg_char_hex(value);
+  // gpio_toggle_pin(LED_MODE_PIN);
+
+  i2c_buffer[i2c_write_pos] = value;
+  i2c_write_pos++;
+  if(i2c_write_pos == I2C_BUFFER_SIZE) i2c_write_pos = 0;
+
+  // TODO we need a proper end-of-packet indicator??
+
+  static event_t e;   
+  e.type = kEventI2C;
+  e.data = i2c_write_pos; 
+  event_post(&e);
 }
 
 // stop function

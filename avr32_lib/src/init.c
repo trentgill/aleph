@@ -1,7 +1,7 @@
-/* ini.c
+/* init.c
    aleph-avr32
    
-   low-level peripheral  initialization.
+   low-level peripheral initialization.
 */
 
 //ASF
@@ -19,18 +19,22 @@
 #include "sd_mmc_spi.h"
 #include "spi.h"
 #include "tc.h"
+#include "twi.h"
 #include "uhc.h"
 #include "usart.h"
 // aleph
-//#include "conf_aleph.h"
 #include "aleph_board.h"
 #include "conf_tc_irq.h"
 #include "filesystem.h"
+#include "i2c.h"
 #include "init.h"
+
 
 //===========================
 //==== static variables
-// ...
+
+twi_options_t opt;
+twi_slave_fct_t twi_slave_fct;
 
 //===================================
 //==== external functionsx
@@ -280,18 +284,109 @@ void init_bfin_resources(void) {
   gpio_enable_pin_pull_up(BFIN_RESET_PIN);
 }
 
-// intialize two-wire interface
-void init_twi(void) {
+// initialize USB host stack
+void init_usb_host (void) {
+  uhc_start();
+}
+
+
+// initialize i2c
+void init_i2c(void) {
+  int status;
+  /* clock div calculation in the twi is grossly inaccurate,
+     so we manually re-set the divisors to get as close to 400k as possible.
+     there is also some very weird offset going on, 
+     so these values are experimentally determined,
+     and don't really match what one would expect from the datasheet :S
+   */
+
+  u32 c_lh_div = 63;
+  u32 ckdiv = 0;
+
   // TWI/I2C GPIO map
   static const gpio_map_t TWI_GPIO_MAP = {
     { TWI_DATA_PIN, TWI_DATA_FUNCTION },
     { TWI_CLOCK_PIN, TWI_CLOCK_FUNCTION }
   };
   gpio_enable_module(TWI_GPIO_MAP, sizeof(TWI_GPIO_MAP) / sizeof(TWI_GPIO_MAP[0]));
+
+  // options settings
+  opt.pba_hz = FPBA_HZ;
+  opt.speed = TWI_SPEED;
+  // FIXME: make this an argument
+  opt.chip = 100;
+
+    // initialize TWI driver with options
+  twi_slave_fct.rx = &i2c_slave_rx;
+  twi_slave_fct.tx = &i2c_slave_tx;
+  twi_slave_fct.stop = &i2c_slave_stop;
+  status = twi_slave_init(&AVR32_TWI, &opt, &twi_slave_fct );
+
+  // overwrite clock settings with 400k
+  AVR32_TWI.cwgr = ((c_lh_div << AVR32_TWI_CWGR_CLDIV_OFFSET) |
+      (c_lh_div << AVR32_TWI_CWGR_CHDIV_OFFSET) |
+      (ckdiv << AVR32_TWI_CWGR_CKDIV_OFFSET));
 }
 
 
-// initialize USB host stack
-void init_usb_host (void) {
-  uhc_start();
+// intialize TWI in slave mode
+void init_i2c_slave(void) {
+  int status;
+
+  // FIXME: make this an argument
+  opt.chip = 100;
+
+  // // initialize TWI driver with options
+  // twi_slave_fct.rx = &i2c_slave_rx;
+  // twi_slave_fct.tx = &i2c_slave_tx;
+  // twi_slave_fct.stop = &i2c_slave_stop;
+  status = twi_slave_init(&AVR32_TWI, &opt, &twi_slave_fct );
+
+  // // check init result
+  // if (status == TWI_SUCCESS)
+  //   {
+  //     // display test result to user
+  //     print_dbg("\r\ntwi slave start:\tPASS");
+  //   }
+  // else
+  //   {
+  //     // display test result to user
+  //     print_dbg("\r\ntwi slave start:\tFAIL");
+  //   }
+}
+
+// intialize I2C in master mode
+void init_i2c_master(void) {
+  int status;
+
+  /* clock div calculation in the twi is grossly inaccurate,
+     so we manually re-set the divisors to get as close to 400k as possible.
+     there is also some very weird offset going on, 
+     so these values are experimentally determined,
+     and don't really match what one would expect from the datasheet :S
+   */
+
+  u32 c_lh_div = 63;
+  u32 ckdiv = 0;
+  
+  status = twi_master_init(&AVR32_TWI, &opt);
+  // AVR32_TWI.cwgr = ((c_lh_div << AVR32_TWI_CWGR_CLDIV_OFFSET) |
+    //  (c_lh_div << AVR32_TWI_CWGR_CHDIV_OFFSET) |
+    //  (ckdiv << AVR32_TWI_CWGR_CKDIV_OFFSET));
+  // check init result
+  // if (status == TWI_SUCCESS)
+  //   {
+  //     // display test result to user
+  //     print_dbg("\r\ntwi master start:\tPASS");
+  //   }
+  // else
+  //   {
+  //     // display test result to user
+  //     print_dbg("\r\ntwi master start:\tFAIL");
+  //   }
+
+    // overwrite clock settings with 400k
+  AVR32_TWI.cwgr = ((c_lh_div << AVR32_TWI_CWGR_CLDIV_OFFSET) |
+      (c_lh_div << AVR32_TWI_CWGR_CHDIV_OFFSET) |
+      (ckdiv << AVR32_TWI_CWGR_CKDIV_OFFSET));
 }

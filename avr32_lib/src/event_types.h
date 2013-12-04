@@ -48,11 +48,9 @@ typedef enum {
   kEventHidConnect,
   kEventHidDisconnect,
   kEventHidByte,
+  // i2c
+  kEventI2C,
 
-
-// TODO:
-  // uart from computer
-  //--- main handlers
   // kEventSerialDebugFlag,
   // kEventSerialCaptureFlag,
   kEventSerialParamNum,
