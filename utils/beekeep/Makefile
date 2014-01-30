@@ -32,6 +32,7 @@ src += 	$(bees)/src/app_timers.c \
 	$(bees)/src/ops/op_div.c \
 	$(bees)/src/ops/op_enc.c \
 	$(bees)/src/ops/op_gate.c \
+	$(bees)/src/ops/op_history.c \
 	$(bees)/src/ops/op_is.c \
 	$(bees)/src/ops/op_life.c \
 	$(bees)/src/ops/op_list2.c \

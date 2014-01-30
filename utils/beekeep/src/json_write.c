@@ -184,7 +184,7 @@ static json_t* net_write_json_presets(void) {
     p = json_object();
     json_object_set(p, "name", json_string( preset_name(i)) );
     l = json_array();
-    for(j=0; j<NET_INS_MAX; j++) {
+    for(j=0; j<PRESET_INODES_COUNT; j++) {
       /// 
       o = json_object();
       json_object_set(o, "enabled", json_integer( presets[i].ins[j].enabled ));
