@@ -83,23 +83,25 @@ static inline void param_setup(u32 id, ParamValue v) {
 // frame calculation
 static void calc_frame(void) {
   static u8 i;
-  static fract32 o;
+  static fract32 oscOutTmp;
 
 #if 1
 
-  // mix modulation input
-  mix_mod();
+  //  // mix modulation input
+  //  mix_mod();
 
   for(i=0; i<WAVES_NVOICES; ++i) {
 
-    //////// FIXME: macroize osc
     // phase mod with fixed 1-frame delay
-    osc_pm_in( &(osc[i]), pmIn[i] );
+    //    complex_osc_pm_in( osc[i], pmIn[i] );
+
     // TODO: shape mod
     // TODO: amp mod
     // TODO: cutoff mod
     // calculate oscillator output
-    o = oscOut[i] = shr_fr1x32( osc_next( &(osc[i]) ), 2);    
+    complex_osc_next( osc[i], oscOutTmp );
+    oscOut[i] = shr_fr1x32( oscOutTmp, 2);  
+  
     // process SVF param integrators
     slew_exp_calc_frame( cutSlew[i] );
     slew_exp_calc_frame( rqSlew[i] );
@@ -109,7 +111,7 @@ static void calc_frame(void) {
     filter_svf_set_coeff( &(svf[i]), (cutSlew[i]).y );
     filter_svf_set_rq(	  &(svf[i]), (rqSlew[i]).y );
     // calculate svf output
-    svfOut[i] = filter_svf_next( &(svf[i]), o );
+    svfOut[i] = filter_svf_next( &(svf[i]), oscOutTmp );
     // process amp smoother
     slew_exp_calc_frame( ampSlew[i] );
     voiceAmp[i] = (ampSlew[i]).y;
@@ -194,13 +196,17 @@ void module_init(void) {
   /*   gModuleData->paramData[i].value = gModuleData->paramDesc[i].min; */
   /* } */
 
+  //  for(i=0; i<WAVES_NVOICES; i++) {
   for(i=0; i<WAVES_NVOICES; i++) {
     fract32 tmp = FRACT32_MAX >> 2;
     /* osc_init( &(voice[i].osc), &wavtab, SAMPLERATE ); */
     /* filter_svf_init( &(voice[i].svf) ); */
     /* voice[i].amp = tmp; */
 
-    osc_init( &(osc[i]), &wavtab, SAMPLERATE );
+    //    complex_osc_init( osc[i], (&(wavtab)) );
+    osc[i].tab = &wavtab;
+    complex_osc_init( osc[i] );
+
     filter_svf_init( &(svf[i]) );
     voiceAmp[i] = tmp;
 
