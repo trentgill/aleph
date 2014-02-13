@@ -5,198 +5,175 @@ void module_set_param(u32 idx, ParamValue v) {
   switch(idx) {
 
   case eParamHz1:
-    osc_set_hz( &(voice[1].osc), v );
+    osc_set_hz( &(osc[1]), v );
     break;
   case eParamHz0:
-    osc_set_hz( &(voice[0].osc), v );
+    osc_set_hz( &(osc[0]), v );
     break;
 
   case eParamTune1:
-    osc_set_tune( &(voice[1].osc), v );
+    osc_set_tune( &(osc[1]), v );
     break;
   case eParamTune0:
-    osc_set_tune( &(voice[0].osc), v );
+    osc_set_tune( &(osc[0]), v );
     break;
 
   case eParamWave1:
-    osc_set_shape( &(voice[1].osc), BIT_ABS_32(FIX16_FRACT_TRUNC(v)) );
+    osc_set_shape( &(osc[1]), BIT_ABS_32(FIX16_FRACT_TRUNC(v)) );
     break;
   case eParamWave0:
-    osc_set_shape( &(voice[0].osc), BIT_ABS_32(FIX16_FRACT_TRUNC(v)) );
+    osc_set_shape( &(osc[0]), BIT_ABS_32(FIX16_FRACT_TRUNC(v)) );
     break;
 
     // FIXME: this is assuming simple fixed x-modulation with 2 voices.
     /// should have a matrix of modulation mix points.
   case eParamPm10:
-    osc_set_pm ( &(voice[0].osc), BIT_ABS_32(FIX16_FRACT_TRUNC(v)) );
+    osc_set_pm ( &(osc[0]), BIT_ABS_32(FIX16_FRACT_TRUNC(v)) );
     break;
   case eParamPm01:
-    osc_set_pm ( &(voice[1].osc), BIT_ABS_32(FIX16_FRACT_TRUNC(v)) );
+    osc_set_pm ( &(osc[1]), BIT_ABS_32(FIX16_FRACT_TRUNC(v)) );
     break;
 
   case eParamWm10:
-    osc_set_wm ( &(voice[0].osc), BIT_ABS_32(FIX16_FRACT_TRUNC(v)) );
+    osc_set_wm ( &(osc[0]), BIT_ABS_32(FIX16_FRACT_TRUNC(v)) );
     break;
   case eParamWm01:
-    osc_set_wm ( &(voice[1].osc), BIT_ABS_32(FIX16_FRACT_TRUNC(v)) );
+    osc_set_wm ( &(osc[1]), BIT_ABS_32(FIX16_FRACT_TRUNC(v)) );
     break;
 
   case eParamAmp1:
     //     filter_1p_lo_in(amp1Lp, v);
     //    filter_1p_lo_in(&(voice[1].ampSlew), v);
-    voice[1].ampSlew.x = v;
+    ampSlew[1].x = v;
     
     break;
   case eParamAmp0:
     //    filter_1p_lo_in(amp0Lp, v);
     //    filter_1p_lo_in(&(voice[0].ampSlew), v);
-    voice[0].ampSlew.x = v;
+    ampSlew[0].x = v;
     break;
 
   case eParamBl1 :
-    osc_set_bl( &(voice[1].osc), BIT_ABS_32(FIX16_FRACT_TRUNC(v)) );
+    osc_set_bl( &(osc[1]), BIT_ABS_32(FIX16_FRACT_TRUNC(v)) );
     break;
   case eParamBl0 :
-    osc_set_bl( &(voice[0].osc), BIT_ABS_32(FIX16_FRACT_TRUNC(v)) );
+    osc_set_bl( &(osc[0]), BIT_ABS_32(FIX16_FRACT_TRUNC(v)) );
     break;
 
     //// filter params:
   case eParam_cut1 :
-    //    filter_svf_set_coeff(&(voice[1].svf), v );
-    //    filter_1p_lo_in( &(voice[1].cutSlew), v );
-    voice[1].cutSlew.x = v;
+    cutSlew[1].x = v;
     break;
   case eParam_cut0 :
-    //    filter_svf_set_coeff(&(voice[0].svf), v );
-    //    filter_1p_lo_in( &(voice[0].cutSlew), v );
-    voice[0].cutSlew.x = v;
+    cutSlew[0].x = v;
     break;
 
   case eParam_rq1 :
     // incoming param value is 16.16
     // target is 2.30
-    //    filter_svf_set_rq(&(voice[1].svf), v);
-    //    filter_svf_set_rq(&(voice[1].svf), v << 14);
-    //    filter_1p_lo_in( &(voice[1].rqSlew), v << 14 );
-    voice[1].rqSlew.x = v << 14;
+    rqSlew[1].x = v << 14;
     break;
 
   case eParam_rq0 :
-    //    filter_svf_set_rq(&(voice[0].svf), v);
-    //    filter_svf_set_rq(&(voice[0].svf), v << 14);
-    //    filter_1p_lo_in( &(voice[0].rqSlew), v << 14 );
-    voice[0].rqSlew.x = v << 14;
+    rqSlew[0].x = v << 14;
     break;
 
   case eParam_low1 :
-    filter_svf_set_low(&(voice[1].svf), v);
+    filter_svf_set_low(&(svf[1]), v);
     break;
 
   case eParam_low0 :
-    filter_svf_set_low(&(voice[0].svf), v);
+    filter_svf_set_low(&(svf[0]), v);
     break;
   case eParam_high1 :
-    filter_svf_set_high(&(voice[1].svf), v);
+    filter_svf_set_high(&(svf[1]), v);
     break;
   case eParam_high0 :
-    filter_svf_set_high(&(voice[0].svf), v);
+    filter_svf_set_high(&(svf[0]), v);
     break;
   case eParam_band1 :
-    filter_svf_set_band(&(voice[1].svf), v);
+    filter_svf_set_band(&(svf[1]), v);
     break;
   case eParam_band0 :
-    filter_svf_set_band(&(voice[0].svf), v);
+    filter_svf_set_band(&(svf[0]), v);
     break;
   case eParam_notch1 :
-    filter_svf_set_notch(&(voice[1].svf), v);
+    filter_svf_set_notch(&(svf[1]), v);
     break;
   case eParam_notch0 :
-    filter_svf_set_notch(&(voice[0].svf), v);
+    filter_svf_set_notch(&(svf[0]), v);
     break;
 
     // filter balance
   case eParam_fwet0 :
-    voice[0].fWet = v;
+    fWet[0] = v;
     break;
 
   case eParam_fwet1 :
-    voice[1].fWet = v;
+    fWet[1] = v;
     break;
 
   case eParam_fdry0 :
-    voice[0].fDry = v;
+    fDry[0] = v;
     break;
 
   case eParam_fdry1 :
-    voice[1].fDry = v;
+    fDry[1] = v;
     break;
 
     ///// slews
   case eParamHz1Slew:
-    //    filter_1p_lo_set_slew( &(voice[1].osc.lpInc), v); 
-    voice[1].osc.lpInc.c = v;
+    //    filter_1p_lo_set_slew( &(osc[1].lpInc), v); 
+    osc[1].lpInc.c = v;
     break;
   case eParamHz0Slew:
-    //    filter_1p_lo_set_slew( &(voice[0].osc.lpInc), v); 
-    voice[0].osc.lpInc.c = v;
+    //    filter_1p_lo_set_slew( &(osc[0].lpInc), v); 
+    osc[0].lpInc.c = v;
     break;
 
   case eParamPm01Slew:
-    //    filter_1p_lo_set_slew( &(voice[1].osc.lpPm), v); 
-    voice[1].osc.lpPm.c = v;
+    //    filter_1p_lo_set_slew( &(osc[1].lpPm), v); 
+    osc[1].lpPm.c = v;
     break;
   case eParamPm10Slew:
-    //    filter_1p_lo_set_slew( &(voice[0].osc.lpPm), v); 
-    voice[0].osc.lpPm.c = v;
+    //    filter_1p_lo_set_slew( &(osc[0].lpPm), v); 
+    osc[0].lpPm.c = v;
     break;
 
   case eParamWm01Slew:
-    //    filter_1p_lo_set_slew( &(voice[1].osc.lpWm), v); 
     /// not using wave mod
     break;
   case eParamWm10Slew:
-    //    filter_1p_lo_set_slew( &(voice[0].osc.lpWm), v); 
     /// not using wave mod
     break;
 
   case eParamWave1Slew:
-    //    filter_1p_lo_set_slew( &(voice[1].osc.lpShape), v); 
-    voice[1].osc.lpShape.c = v;
+    osc[1].lpShape.c = v;
     break;
   case eParamWave0Slew:
-    //    filter_1p_lo_set_slew( &(voice[0].osc.lpShape), v); 
-    voice[0].osc.lpShape.c = v;
+    osc[0].lpShape.c = v;
     break;
 
     //---- voice-param integrators
-  case eParamAmp1Slew:
-    //    filter_1p_lo_set_slew( &(voice[1].ampSlew), v);
-    voice[1].ampSlew.c = v;
-    break;
   case eParamAmp0Slew:
-    //    filter_1p_lo_set_slew( &(voice[0].ampSlew), v);
-    voice[0].ampSlew.c = v;
+    ampSlew[0].c = v;
+    break;
+  case eParamAmp1Slew:
+    ampSlew[1].c = v;
     break;
   case eParamCut0Slew :
-    //    filter_1p_lo_set_slew(&(voice[0].cutSlew), v)
-    voice[0].cutSlew.c = v;
+    cutSlew[0].c = v;
     break;
   case eParamCut1Slew :
-    //    filter_1p_lo_set_slew(&(voice[1].cutSlew), v);
-    voice[1].cutSlew.c = v;
+    cutSlew[1].c = v;
     break;
-
   case eParamRq0Slew :
-    //    filter_1p_lo_set_slew(&(voice[0].rqSlew), v);
-    voice[0].rqSlew.c = v;
+    rqSlew[0].c = v;
     break;
-
   case eParamRq1Slew :
-    //    filter_1p_lo_set_slew(&(voice[1].rqSlew), v);
-    voice[1].rqSlew.c = v;
+    rqSlew[1].c = v;
     break;
 
-    // cv values
   case eParam_cvVal0 :
     filter_1p_lo_in(&(cvSlew[0]), (v >> ( PARAM_DAC_RADIX - 1))  & DAC_VALUE_MASK);
     //cv_update(0, v >> (PARAM_CV_RADIX - 1));
