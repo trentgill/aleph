@@ -8,8 +8,9 @@
 #ifndef _ALEPH_DSP_OSC_H_
 #define _ALEPH_DSP_OSC_H_
 
-#include "filter_1p.h"
+//#include "filter_1p.h"
 #include "fix.h"
+#include "slew.h"
 
 // base-frequency limits in fix16
 #define OSC_HZ_MIN 0x00010000      // 1 hz
@@ -34,7 +35,7 @@
 typedef const fract32 (*wavtab_t) [WAVE_TAB_NUM][WAVE_TAB_SIZE];
 
 // class structure
-typedef struct _osc {
+typedef struct _ComplexOsc {
   // output value
   fract32 val;
   // wavetable data (pointer to table of tables)
@@ -66,42 +67,48 @@ typedef struct _osc {
   fract32 pmIn, wmIn;
 
   /// 1pole filters for smoothing phase increment, shape, modulation params
-  filter_1p_lo lpInc;
-  filter_1p_lo lpShape;
-  filter_1p_lo lpPm;
-  filter_1p_lo lpWm;
+  /* filter_1p_lo lpInc; */
+  /* filter_1p_lo lpShape; */
+  /* filter_1p_lo lpPm; */
+  /* filter_1p_lo lpWm; */
+  SlewExp lpInc;
+  SlewExp lpShape;
+  SlewExp lpPm;
+  SlewExp lpWm;
   
   //// TODO: can get more shapes, at slight expense, by invert+shift+sum
   // inversion amount 
   //  fract32 invAmp;
   // inversion phase
   //  fix16 invPhase;
-} osc;
+} ComplexOsc;
 
 // initialize given table data and samplerate
-extern void osc_init(osc* osc, wavtab_t tab, u32 sr);
+extern void osc_init(ComplexOsc* osc, wavtab_t tab, u32 sr);
 
 // set waveshape (table)
-extern void osc_set_shape(osc* osc, fract32 shape);
+extern void osc_set_shape(ComplexOsc* osc, fract32 shape);
 // set base frequency in hz
-extern void osc_set_hz(osc* osc, fix16 hz);
+extern void osc_set_hz(ComplexOsc* osc, fix16 hz);
 // set fine-tuning ratio
-extern void osc_set_tune(osc* osc, fix16 ratio);
+extern void osc_set_tune(ComplexOsc* osc, fix16 ratio);
 
 // phase modulation amount
-extern void osc_set_pm(osc* osc, fract32 wmAmt);
+extern void osc_set_pm(ComplexOsc* osc, fract32 wmAmt);
 // shape modulation amount
-extern void osc_set_wm(osc* osc, fract32 wmAmt);
+extern void osc_set_wm(ComplexOsc* osc, fract32 wmAmt);
 
 // phase modulation input
-extern void osc_pm_in(osc* osc, fract32 pm);
+extern void osc_pm_in(ComplexOsc* osc, fract32 pm);
 // shape modulation input
-extern void osc_wm_in(osc* osc, fract32 wm);
+extern void osc_wm_in(ComplexOsc* osc, fract32 wm);
 
 // set bandlimiting coefficient
-extern void osc_set_bl(osc* osc, fract32 bl);
+extern void osc_set_bl(ComplexOsc* osc, fract32 bl);
 
 // compute next value
-extern fract32 osc_next( osc* osc);
+extern fract32 osc_next( ComplexOsc* osc);
+
+
 
 #endif

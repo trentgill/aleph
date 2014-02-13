@@ -29,7 +29,7 @@ static u32 shapeLimMul;
 
 
 // calculate modulated and bandlimited waveshape
-static inline void osc_calc_wm(osc* osc) {
+static inline void osc_calc_wm(ComplexOsc* osc) {
   fract32 sm; // mod shape
   // fract32 sl; // shape limit given current freq
 
@@ -65,8 +65,9 @@ static inline void osc_calc_wm(osc* osc) {
 }
 
 // calculate phase incremnet
-static inline void osc_calc_inc( osc* osc) {
-  filter_1p_lo_in( &(osc->lpInc), fix16_mul(osc->ratio, fix16_mul(osc->hz, ips)) );
+static inline void osc_calc_inc( ComplexOsc* osc) {
+  //  filter_1p_lo_in( &(osc->lpInc), fix16_mul(osc->ratio, fix16_mul(osc->hz, ips)) );
+  (osc->lpInc).x = fix16_mul(osc->ratio, fix16_mul(osc->hz, ips) );
 
   /// TEST:
   //  osc->inc = fix16_mul(osc->ratio, fix16_mul(osc->hz, ips));
@@ -74,7 +75,7 @@ static inline void osc_calc_inc( osc* osc) {
 }
 
 // calculate phase
-static inline void osc_calc_pm(osc* osc) {
+static inline void osc_calc_pm(ComplexOsc* osc) {
   osc->idxMod = fix16_add( osc->idx, 
 			   fix16_mul( FRACT_FIX16( mult_fr1x32x32( osc->pmIn, 
 								   osc->pmAmt ) ),
@@ -92,7 +93,7 @@ static inline void osc_calc_pm(osc* osc) {
 }
 
 // lookup 
-static inline fract32 osc_lookup(osc* osc) {
+static inline fract32 osc_lookup(ComplexOsc* osc) {
   u32 idxA = osc->shapeMod >> WAVE_TAB_RSHIFT;
   u32 idxB = idxA + 1;
   
@@ -112,7 +113,7 @@ static inline fract32 osc_lookup(osc* osc) {
 }
 
 // advance phase
-static inline void osc_advance(osc* osc) {
+static inline void osc_advance(ComplexOsc* osc) {
   osc->idx = fix16_add(osc->idx, osc->inc);
   while(osc->idx > WAVE_TAB_MAX16) { 
     osc->idx = fix16_sub(osc->idx, WAVE_TAB_MAX16);
@@ -123,7 +124,7 @@ static inline void osc_advance(osc* osc) {
 //--- extern funcs
 
 // initialize given table data and samplerate
-void osc_init(osc* osc, wavtab_t tab, u32 sr) {
+void osc_init(ComplexOsc* osc, wavtab_t tab, u32 sr) {
   osc->tab = tab;
 
   ips = fix16_from_float( (f32)WAVE_TAB_SIZE / (f32)sr );
@@ -135,10 +136,14 @@ void osc_init(osc* osc, wavtab_t tab, u32 sr) {
   shapeLimMul = 0x7fffffff / incRange;
 #endif
 
-  filter_1p_lo_init( &(osc->lpInc) , FIX16_ONE);
-  filter_1p_lo_init( &(osc->lpShape) , FIX16_ONE);
-  filter_1p_lo_init( &(osc->lpPm) , FIX16_ONE);
-  filter_1p_lo_init( &(osc->lpWm) , FIX16_ONE);
+  /* filter_1p_lo_init( &(osc->lpInc) , FIX16_ONE); */
+  /* filter_1p_lo_init( &(osc->lpShape) , FIX16_ONE); */
+  /* filter_1p_lo_init( &(osc->lpPm) , FIX16_ONE); */
+  /* filter_1p_lo_init( &(osc->lpWm) , FIX16_ONE); */
+  slew_exp_init( osc->lpInc , FIX16_ONE);
+  slew_exp_init( osc->lpShape , 0);
+  slew_exp_init( osc->lpPm , 0);
+  slew_exp_init( osc->lpWm , 0);
 
   osc->val = 0;
   osc->idx = 0;
@@ -154,59 +159,69 @@ void osc_init(osc* osc, wavtab_t tab, u32 sr) {
 }
 
 // set waveshape (table)
-void osc_set_shape(osc* osc, fract32 shape) {
-  filter_1p_lo_in( &(osc->lpShape), shape );
+void osc_set_shape(ComplexOsc* osc, fract32 shape) {
+  //  filter_1p_lo_in( &(osc->lpShape), shape );
+  (osc->lpShape).x = shape;
 }
 
 // set base frequency in hz
-void osc_set_hz(osc* osc, fix16 hz) {
+void osc_set_hz(ComplexOsc* osc, fix16 hz) {
   osc->hz = hz;
   osc_calc_inc(osc);
 }
 
 // set fine-tuning ratio
-void osc_set_tune(osc* osc, fix16 ratio) {
+void osc_set_tune(ComplexOsc* osc, fix16 ratio) {
   osc->ratio = ratio;
   osc_calc_inc(osc);
 }
 
 // phase modulation amount
-void osc_set_pm(osc* osc, fract32 amt) {
-  filter_1p_lo_in( &(osc->lpPm), amt);
+void osc_set_pm(ComplexOsc* osc, fract32 amt) {
+  //  filter_1p_lo_in( &(osc->lpPm), amt);
+  (osc->lpPm).x = amt;
 }
 
 // shape modulation amount
-void osc_set_wm(osc* osc, fract32 amt) {
-  filter_1p_lo_in( &(osc->lpWm), amt);
+void osc_set_wm(ComplexOsc* osc, fract32 amt) {
+  //  filter_1p_lo_in( &(osc->lpWm), amt);
+  (osc->lpWm).x = amt;
 }
 
 // phase modulation input
-void osc_pm_in(osc* osc, fract32 val) {
+void osc_pm_in(ComplexOsc* osc, fract32 val) {
   osc->pmIn = val;
 }
 
 // shape modulation input
-void osc_wm_in(osc* osc, fract32 val) {
+void osc_wm_in(ComplexOsc* osc, fract32 val) {
   osc->wmIn = val;
 }
 
 
 // set bandlimiting
-void osc_set_bl(osc* osc, fract32 bl) {
+void osc_set_bl(ComplexOsc* osc, fract32 bl) {
   osc->bandLim = bl;
 }
 
 // get next frame value
-fract32 osc_next(osc* osc) {
+fract32 osc_next(ComplexOsc* osc) {
 
   /// update param smoothers
     
-  osc->inc = filter_1p_lo_next( &(osc->lpInc) );
-  osc->shape = filter_1p_lo_next( &(osc->lpShape) );
-  osc->pmAmt = filter_1p_lo_next( &(osc->lpPm) );
+  /* osc->inc = filter_1p_lo_next( &(osc->lpInc) ); */
+  /* osc->shape = filter_1p_lo_next( &(osc->lpShape) ); */
+  /* osc->pmAmt = filter_1p_lo_next( &(osc->lpPm) ); */
   //  osc->wmAmt = filter_1p_lo_next( &(osc->lpWm) );
-  
 
+  slew_exp_calc_frame( osc->lpInc );
+  slew_exp_calc_frame( osc->lpShape );
+  slew_exp_calc_frame( osc->lpPm );
+
+  osc->inc = (osc->lpInc).y;
+  osc->shape = (osc->lpShape).y;
+  osc->pmAmt = (osc->lpPm).y;
+  
   // calculate waveshape modulation + bandlimiting
   //  osc_calc_wm(osc);
   // doesn't sound great yet anyways

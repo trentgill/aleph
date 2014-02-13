@@ -56,12 +56,11 @@ void module_init(void) {
   gModuleData->paramData = data->mParamData;
   gModuleData->numParams = eParamNumParams;
 
-
-
   /// intialize state variables
   for(i=0; i<MAPS_NVOICES; i++) {
     lcprng_reset(rng[i], 0);
   }
+
   for(i=0; i<MAPS_NVOICES; i++) {
     slew_exp_init(ampSlew[i]);
   }

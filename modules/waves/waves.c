@@ -46,7 +46,7 @@ typedef struct _wavesData {
 // single "voice" structure
 typedef struct _waveVoice { 
   // oscillator
-  osc osc;
+  ComplexOsc osc;
   // filter
   filter_svf svf;
   // osc amp
@@ -61,12 +61,17 @@ typedef struct _waveVoice {
   fract32 fDry;
   // wet mix
   fract32 fWet;
+
   // amp smoother
-  filter_1p_lo ampSlew;
+  //  filter_1p_lo ampSlew;
+  SlewExp ampSlew;
   // cutoff smoother
-  filter_1p_lo cutSlew;
+  //  filter_1p_lo cutSlew;
+  SlewExp cutSlew;
   // rq smoother
-  filter_1p_lo rqSlew;
+  //  filter_1p_lo rqSlew;
+  SlewExp rqSlew;
+
   // PM input
   fract32 pmIn;
   // shape mod input
@@ -264,12 +269,23 @@ static void calc_frame(void) {
     // shape mod with fixed 1-frame delay
     osc_wm_in( &(v->osc), v->wmIn );
     // process filter integrators and set 
-    filter_svf_set_coeff( &(v->svf), filter_1p_lo_next( &(v->cutSlew) ) );
-    filter_svf_set_rq( &(v->svf), filter_1p_lo_next( &(v->rqSlew) ) );
+
+    slew_exp_calc_frame( v->cutSlew );
+    slew_exp_calc_frame( v->rqSlew );
+
+    //    filter_svf_set_coeff( &(v->svf), filter_1p_lo_next( &(v->cutSlew) ) );
+    //    filter_svf_set_rq( &(v->svf), filter_1p_lo_next( &(v->rqSlew) ) );
+
+    filter_svf_set_coeff( &(v->svf), (v->cutSlew).y );
+    filter_svf_set_rq( &(v->svf), (v->rqSlew).y );
+
     // process filter
     v->svfOut = filter_svf_next( &(v->svf), shr_fr1x32(v->oscOut, 1) );
     // process amp smoother
-    v->amp  = filter_1p_lo_next( &(v->ampSlew) );
+    //    v->amp  = filter_1p_lo_next( &(v->ampSlew) );
+    slew_exp_calc_frame( v->ampSlew );
+    v->amp = (v->ampSlew).y;
+
     // mix to output bus
     v->out = mult_fr1x32x32(v->amp,
 			    add_fr1x32(mult_fr1x32x32( v->oscOut, v->fDry),
@@ -372,9 +388,13 @@ void module_init(void) {
     osc_init( &(voice[i].osc), &wavtab, SAMPLERATE );
     filter_svf_init( &(voice[i].svf) );
     voice[i].amp = tmp;
-    filter_1p_lo_init(&(voice[i].ampSlew), 0xf);
-    filter_1p_lo_init(&(voice[i].cutSlew), 0xf);
-    filter_1p_lo_init(&(voice[i].rqSlew), 0xf);
+    /* filter_1p_lo_init(&(voice[i].ampSlew), 0xf); */
+    /* filter_1p_lo_init(&(voice[i].cutSlew), 0xf); */
+    /* filter_1p_lo_init(&(voice[i].rqSlew), 0xf); */
+    slew_exp_init(voice[i].ampSlew, PARAM_AMP_12);
+    slew_exp_init(voice[i].cutSlew, PARAM_CUT_DEFAULT);
+    slew_exp_init(voice[i].rqSlew, PARAM_RQ_DEFAULT);
+    
   }
 
   //  oscAmp1 = oscAmp0 = INT32_MAX >> 2;

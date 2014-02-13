@@ -11,4 +11,3 @@
 extern lcprng rng[MAPS_NVOICES];
 // amp smoother
 extern SlewExp ampSlew[MAPS_NVOICES];
-
