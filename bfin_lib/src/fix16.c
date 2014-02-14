@@ -64,7 +64,8 @@ fix16_t fix16_ssub(fix16_t a, fix16_t b)
  * detection.
  */
  
-#if !defined(FIXMATH_NO_64BIT) && !defined(FIXMATH_OPTIMIZE_8BIT)
+//#if !defined(FIXMATH_NO_64BIT) && !defined(FIXMATH_OPTIMIZE_8BIT)
+#if 0
 fix16_t fix16_mul(fix16_t inArg0, fix16_t inArg1)
 {
   int64_t product = (int64_t)inArg0 * inArg1;
@@ -109,7 +110,8 @@ fix16_t fix16_mul(fix16_t inArg0, fix16_t inArg1)
  * and this is a relatively good compromise for compilers that do not support
  * uint64_t. Uses 16*16->32bit multiplications.
  */
-#if defined(FIXMATH_NO_64BIT) && !defined(FIXMATH_OPTIMIZE_8BIT)
+//#if defined(FIXMATH_NO_64BIT) && !defined(FIXMATH_OPTIMIZE_8BIT)
+#if 0
 fix16_t fix16_mul(fix16_t inArg0, fix16_t inArg1)
 {
   // Each argument is divided to 16-bit parts.
@@ -170,7 +172,8 @@ fix16_t fix16_mul(fix16_t inArg0, fix16_t inArg1)
  * Uses 8*8->16bit multiplications, and also skips any bytes that
  * are zero.
  */
-#if defined(FIXMATH_OPTIMIZE_8BIT)
+//#if defined(FIXMATH_OPTIMIZE_8BIT)
+#if 0
 fix16_t fix16_mul(fix16_t inArg0, fix16_t inArg1)
 {
   uint32_t _a = (inArg0 >= 0) ? inArg0 : (-inArg0);
@@ -249,6 +252,25 @@ fix16_t fix16_mul(fix16_t inArg0, fix16_t inArg1)
   return result;
 }
 #endif
+
+
+// optimized 16.16 multiply in blackfin ASM
+fix16_t fix16_mul(fix16_t a, fix16_t b) {
+  fix16_t res;
+  blaaaaaaaaaa
+  asm( "
+r0 = %1;
+r1 = %2;
+r5.h = (a1 = r0.h * r1.h)(is);
+a1 = r1.h * r0.l(m), r5.l = (a0 = r1.l * r0.l)(fu);
+r3 = (a1 += r0.h * r1.l)(m);
+r 3= r3 + r5(s);
+%0 = r3;
+
+" : "=r"(res) : "m"(a) , "m"(b) : "r0","r1","r3","r5","a0","a1" );
+  return res;
+}
+
 
 #ifndef FIXMATH_NO_OVERFLOW
 /* Wrapper around fix16_mul to add saturating arithmetic. */

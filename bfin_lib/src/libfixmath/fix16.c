@@ -2,15 +2,6 @@
 #include "int64.h"
 
 
-/////////////////
-  //////////////
-  //// TODO: 
-  // someday, a clever person should take the time to write more optimal 16.16 math for blackfin
-  // by  making use of the fract32 intrinsics (i think)
-
-  //////////////
-  ///////////////
-
 /* Subtraction and addition with overflow detection.
  * The versions without overflow detection are inlined in the header.
  */
@@ -22,7 +13,7 @@ fix16_t fix16_add(fix16_t a, fix16_t b)
   uint32_t _a = a, _b = b;
   uint32_t sum = _a + _b;
 
-  // Overflow can only happen if sign of a == sibfin/commgn of b, and then
+  // Overflow can only happen if sign of a == sign of b, and then
   // it causes sign of sum != sign of a.
   if (!((_a ^ _b) & 0x80000000) && ((_a ^ sum) & 0x80000000))
     return fix16_overflow;
@@ -73,7 +64,8 @@ fix16_t fix16_ssub(fix16_t a, fix16_t b)
  * detection.
  */
  
-#if !defined(FIXMATH_NO_64BIT) && !defined(FIXMATH_OPTIMIZE_8BIT)
+//#if !defined(FIXMATH_NO_64BIT) && !defined(FIXMATH_OPTIMIZE_8BIT)
+#if 0
 fix16_t fix16_mul(fix16_t inArg0, fix16_t inArg1)
 {
   int64_t product = (int64_t)inArg0 * inArg1;
@@ -118,7 +110,8 @@ fix16_t fix16_mul(fix16_t inArg0, fix16_t inArg1)
  * and this is a relatively good compromise for compilers that do not support
  * uint64_t. Uses 16*16->32bit multiplications.
  */
-#if defined(FIXMATH_NO_64BIT) && !defined(FIXMATH_OPTIMIZE_8BIT)
+//#if defined(FIXMATH_NO_64BIT) && !defined(FIXMATH_OPTIMIZE_8BIT)
+#if 0
 fix16_t fix16_mul(fix16_t inArg0, fix16_t inArg1)
 {
   // Each argument is divided to 16-bit parts.
@@ -179,7 +172,8 @@ fix16_t fix16_mul(fix16_t inArg0, fix16_t inArg1)
  * Uses 8*8->16bit multiplications, and also skips any bytes that
  * are zero.
  */
-#if defined(FIXMATH_OPTIMIZE_8BIT)
+//#if defined(FIXMATH_OPTIMIZE_8BIT)
+#if 0
 fix16_t fix16_mul(fix16_t inArg0, fix16_t inArg1)
 {
   uint32_t _a = (inArg0 >= 0) ? inArg0 : (-inArg0);
@@ -259,7 +253,17 @@ fix16_t fix16_mul(fix16_t inArg0, fix16_t inArg1)
 }
 #endif
 
-#ifndef FIXMATH_NO_OVERFLOW
+
+// optimized 16.16 multiply in blackfin ASM
+fix16_t fix16_mul(fix16_t a, fix16_t b) {
+  fix16_t res;
+  asm( "R0 = %1; R1 = %2; R5.h = (A1 = R0.h * R1.h)(is); A1 = R1.h * R0.l(m), R5.l = (A0 = R1.l * R0.l)(fu); R3 = (A1 += R0.h * R1.l)(m); R3 = R3 + R5(s); %0 = R3; " : "=m"(res) : "m"(a) , "m"(b) : "R0","R1","R3","R5","A0","A1" );
+  return res;
+}
+
+
+//#ifndef FIXMATH_NO_OVERFLOW
+#if 0
 /* Wrapper around fix16_mul to add saturating arithmetic. */
 fix16_t fix16_smul(fix16_t inArg0, fix16_t inArg1) {
   fix16_t result = fix16_mul(inArg0, inArg1);
