@@ -230,6 +230,13 @@ fract32 osc_next(ComplexOsc* osc) {
   // calculate phase modulation
   osc_calc_pm(osc);
 
+
+  /// FIXME: use hardware loop on table?
+/* 	__builtin_bfin_circptr 	(void *ptr, long incr, void * base, unsigned long buflen) */
+
+/*  	void* 	ptr = __builtin_bfin_circptr(ptr, sizeof *ptr, buf, sizeof buf);  */
+/* // returns an incremented pointer within the buffer, looping round if the end of the buffer is reached.  */
+
   // advance phase
   osc_advance(osc);
   

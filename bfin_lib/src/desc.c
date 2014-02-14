@@ -30,7 +30,7 @@ compile with
 //----------------
 //--- static vars
 //ModuleData data;
-ParamDesc desc[eParamNumParams];
+//ParamDesc desc[eParamNumParams];
 char str[64] = "aleph-";
 
 // big ol buffer (1meg)

@@ -42,14 +42,9 @@ void module_set_param(u32 idx, ParamValue v) {
     break;
 
   case eParamAmp1:
-    //     filter_1p_lo_in(amp1Lp, v);
-    //    filter_1p_lo_in(&(voice[1].ampSlew), v);
     ampSlew[1].x = v;
-    
     break;
   case eParamAmp0:
-    //    filter_1p_lo_in(amp0Lp, v);
-    //    filter_1p_lo_in(&(voice[0].ampSlew), v);
     ampSlew[0].x = v;
     break;
 
@@ -106,11 +101,11 @@ void module_set_param(u32 idx, ParamValue v) {
 
     // filter balance
   case eParam_fwet0 :
-    fWet[0] = v;
+    fWet[0] = trunc_fr1x32(v);
     break;
 
   case eParam_fwet1 :
-    fWet[1] = v;
+    fWet[1] = trunc_fr1x32(v);
     break;
 
   case eParam_fdry0 :

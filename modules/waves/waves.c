@@ -92,27 +92,34 @@ static void calc_frame(void) {
 
   for(i=0; i<WAVES_NVOICES; ++i) {
 
-    //////// FIXME: macroize osc
+    //////// FIXME: macroize osc ?
+
     // phase mod with fixed 1-frame delay
     osc_pm_in( &(osc[i]), pmIn[i] );
+
     // TODO: shape mod
     // TODO: amp mod
     // TODO: cutoff mod
+
     // calculate oscillator output
-    o = oscOut[i] = shr_fr1x32( osc_next( &(osc[i]) ), 2);    
+    o = oscOut[i] = shr_fr1x32( osc_next( &(osc[i]) ), 1);    
+
     // process SVF param integrators
     slew_exp_calc_frame( cutSlew[i] );
     slew_exp_calc_frame( rqSlew[i] );
 
-    //////// FIXME: macroize SVF
+    //////// FIXME: macroize SVF ?
     // set svf params
     filter_svf_set_coeff( &(svf[i]), (cutSlew[i]).y );
     filter_svf_set_rq(	  &(svf[i]), (rqSlew[i]).y );
+
     // calculate svf output
-    svfOut[i] = filter_svf_next( &(svf[i]), o );
+    svfOut[i] = filter_svf_next( &(svf[i]), shr_fr1x32(o, 1) );
+
     // process amp smoother
     slew_exp_calc_frame( ampSlew[i] );
     voiceAmp[i] = (ampSlew[i]).y;
+
     // apply wet/dry/amp
     //// TEST:
     /* voiceOut[i] = mult_fr1x32x32( 0x7fffffff, */
@@ -126,13 +133,12 @@ static void calc_frame(void) {
 					     mult_fr1x32( trunc_fr1x32(svfOut[i]), fWet[i] )
 					     )
 				  );
-    
-
   }
+
   // mix outputs
   out[0] = out[1] = out[2] = out[3] = 0;
   mix_voice();
-  //  mix_adc();	
+  mix_adc();	
 
 #else
   /* wavesVoice* v; */
@@ -340,14 +346,14 @@ void module_process_frame(void) {
   /* out[2] = add_fr1x32(frameVal, mult_fr1x32x32(in[2], ioAmp2)); */
   /* out[3] = add_fr1x32(frameVal, mult_fr1x32x32(in[3], ioAmp3)); */
   
-  if(cvSlew[cvChan].sync) { ;; } else {
-    cvVal[cvChan] = filter_1p_lo_next(&(cvSlew[cvChan]));
-    dac_update(cvChan, cvVal[cvChan]);
-  }
- 
-  if(++cvChan == 4) {
-    cvChan = 0;
-  }
+  //  if(cvSlew[cvChan].sync) { ;; } else {
+  //    cvVal[cvChan] = filter_1p_lo_next(&(cvSlew[cvChan]));
+  //    dac_update(cvChan, cvVal[cvChan]);
+    //  }
+
+  cvVal[cvChan] = filter_1p_lo_next(&(cvSlew[cvChan]));
+  dac_update(cvChan, cvVal[cvChan]);
+  cvChan = (cvChan + 1) & 0x3;
   
 }
 

@@ -15,7 +15,8 @@ module_obj = waves.o  \
 	$(audio_dir)/osc.o \
 	$(audio_dir)/table.o \
 	$(bfin_lib_srcdir)/libfixmath/fix32.o \
-	$(bfin_lib_srcdir)/libfixmath/fix16.o
+	$(bfin_lib_srcdir)/libfixmath/fix16.o \
+	$(bfin_lib_srcdir)/fix16.o
 
 
 all: aleph-$(module_name).ldr
