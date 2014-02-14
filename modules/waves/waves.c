@@ -136,10 +136,14 @@ static void calc_frame(void) {
   }
 
   // mix outputs
-  // out[0] = out[1] = out[2] = out[3] = 0;
-  mix_voice(voiceOut, out, (fract16**)mix_osc_dac);
-  mix_adc(in, out, (fract16**)mix_adc_dac);
-  //  mix_adc();	
+  out[0] = out[1] = out[2] = out[3] = 0;
+
+  //  out[0] = add_fr1x32(voiceOut[0], voiceOut[1]);
+
+  mix_voice((const fract32*)voiceOut, out, (fract16**)mix_osc_dac);
+
+
+  //  mix_adc(in, out, (fract16**)mix_adc_dac);
 
 #else
   /* wavesVoice* v; */
