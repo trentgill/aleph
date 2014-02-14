@@ -29,50 +29,30 @@ _mix_mod:
 .type _mix_voice, STT_FUNC;
 _mix_voice:
 	LINK 0
-	// i/o arrays
-	p1 = r0			;
-	p2 = r1 		;
-	// sum of first 2 inputs
-	r0 = [p1]		;
-//	r1 = [p1 + 4]		;
-//	r2 = r0 + r1 (S)	;
-	r2 = r0			;
+	[--sp] = (r7:4) 	;
+	// input and output arrays
+	p2 = r0			; 
+	p1 = r1 		; 
+	// sum the 2 input values
+	r7 = [p2++]		;
+	r6 = [p2]		;
+	r7 = r7 + r6 (S) 	;
 
-	/// WTFFF
+	// loop over outputs
+	p3 = 4			;
+	loop lp_outs lc0=p3	;
+	loop_begin lp_outs	;
+		r5 = [p1]		;
+		r4 = r5 + r7 (S)	;
+		[p1++] = r4		;
+	loop_end lp_outs	;
 
-	// assign to each output
-	[p2++] = r0		;
-	[p2++] = r0		;
-	[p2++] = r0		;
-	[p2] = r0		;
-	
-	;; // add to each output
-	;; r0 = [p2]		;
-	;; r1 = r2 + r0 (S) 	;
-	;; [p2++] = r1		;
-	;; r0 = [p2]		;
-	;; r1 = r2 + r0 (S) 	;
-	;; [p2++] = r1		;
-	;; r0 = [p2]		;
-	;; r1 = r2 + r0 (S) 	;
-	;; [p2++] = r1		;
-	;; r0 = [p2]		;
-	;; r1 = r2 + r0 (S) 	;
-	;; [p2] = r1		;
-	
-	;; // loop over outputs
-	;; p3 = 4 			;
-	;; loop output lc0=p3	;
-	;; loop_begin output		;
-	;; 	r0 = [p2]		;
-	;; 	r1 = r0 + r2 (S)	;
-	;; 	[p2++] = r1	;
-	;; loop_end output 	;
-	
+	(r7:4) = [sp++] 	;
 	UNLINK;
 	rts;
 	.size	_mix_voice, .-_mix_voice
 	.align 4
+
 	
 .global _mix_adc;
 .type _mix_adc, STT_FUNC;
