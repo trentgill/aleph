@@ -40,26 +40,7 @@ void mix_mod(void) {
 
 // mix voice output to output busses
 void mix_voice(void) {
-  int i, j;
-
 #if 1
-
-  /* fract32* pSrc = voiceOut; */
-  /* fract32* pDst = out; */
-  /* fract16* pMix; */
-  
-  /* for(i=0; i<WAVES_NVOICES; ++i) { */
-  /*   pMix = mix_osc_dac[i]; */
-  /*   for(j=0; j<4; ++j) { */
-  /*     //      *pDst = add_fr1x32(*pDst, mult_fr1x32(*pMix++, trunc_fr1x32(*pSrc))); */
-  /*     ///// TEST */
-  /*     *pDst = add_fr1x32(*pDst, mult_fr1x32(0x7fff, trunc_fr1x32(*pSrc))); */
-  /*     pDst++; */
-  /*   } */
-  /*   pSrc++; */
-  /* } */
-
-
   // TEST: all oscs to all outputs
   out[0] = out[1] = out[2] = out[3] =
     add_fr1x32(
@@ -111,21 +92,9 @@ void mix_voice(void) {
 
 // mix adc input to output busses
 void mix_adc (void) { 
-  int i, j;
-  fract32* pSrc = in;
-  fract32* pDst = out;
-  fract16* pMix;
 #if 1
-  for(i=0; i<4; ++i) {
-    pMix = mix_adc_dac[i];
-    for(j=0; j<4; ++j) {
-      *pDst = add_fr1x32(*pDst, mult_fr1x32(trunc_fr1x32( *pSrc), *pMix++));
-      pDst++;
-    }
-    pSrc++;
-  }
-		    
-
+  // TEST: no input
+  ;;
 #else
   for(i=0; i<4; ++i) {
     src[i] = trunc_fr1x32(in[i]);

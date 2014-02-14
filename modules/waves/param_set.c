@@ -5,40 +5,40 @@ void module_set_param(u32 idx, ParamValue v) {
   switch(idx) {
 
   case eParamHz1:
-    complex_osc_set_hz( osc[1], v );
+    osc_set_hz( &(osc[1]), v );
     break;
   case eParamHz0:
-    complex_osc_set_hz( osc[0], v );
+    osc_set_hz( &(osc[0]), v );
     break;
 
   case eParamTune1:
-    complex_osc_set_tune( (osc[1]), v );
+    osc_set_tune( &(osc[1]), v );
     break;
   case eParamTune0:
-    complex_osc_set_tune( (osc[0]), v );
+    osc_set_tune( &(osc[0]), v );
     break;
 
   case eParamWave1:
-    complex_osc_set_shape( (osc[1]), BIT_ABS_32(FIX16_FRACT_TRUNC(v)) );
+    osc_set_shape( &(osc[1]), BIT_ABS_32(FIX16_FRACT_TRUNC(v)) );
     break;
   case eParamWave0:
-    complex_osc_set_shape( (osc[0]), BIT_ABS_32(FIX16_FRACT_TRUNC(v)) );
+    osc_set_shape( &(osc[0]), BIT_ABS_32(FIX16_FRACT_TRUNC(v)) );
     break;
 
     // FIXME: this is assuming simple fixed x-modulation with 2 voices.
     /// should have a matrix of modulation mix points.
   case eParamPm10:
-    complex_osc_set_pm ( (osc[0]), BIT_ABS_32(FIX16_FRACT_TRUNC(v)) );
+    osc_set_pm ( &(osc[0]), BIT_ABS_32(FIX16_FRACT_TRUNC(v)) );
     break;
   case eParamPm01:
-    complex_osc_set_pm ( (osc[1]), BIT_ABS_32(FIX16_FRACT_TRUNC(v)) );
+    osc_set_pm ( &(osc[1]), BIT_ABS_32(FIX16_FRACT_TRUNC(v)) );
     break;
 
   case eParamWm10:
-    complex_osc_set_wm ( (osc[0]), BIT_ABS_32(FIX16_FRACT_TRUNC(v)) );
+    osc_set_wm ( &(osc[0]), BIT_ABS_32(FIX16_FRACT_TRUNC(v)) );
     break;
   case eParamWm01:
-    complex_osc_set_wm ( (osc[1]), BIT_ABS_32(FIX16_FRACT_TRUNC(v)) );
+    osc_set_wm ( &(osc[1]), BIT_ABS_32(FIX16_FRACT_TRUNC(v)) );
     break;
 
   case eParamAmp1:
@@ -54,10 +54,10 @@ void module_set_param(u32 idx, ParamValue v) {
     break;
 
   case eParamBl1 :
-    //    complex_osc_set_bl( (osc[1]), BIT_ABS_32(FIX16_FRACT_TRUNC(v)) );
+    osc_set_bl( &(osc[1]), BIT_ABS_32(FIX16_FRACT_TRUNC(v)) );
     break;
   case eParamBl0 :
-    //    complex_osc_set_bl( (osc[0]), BIT_ABS_32(FIX16_FRACT_TRUNC(v)) );
+    osc_set_bl( &(osc[0]), BIT_ABS_32(FIX16_FRACT_TRUNC(v)) );
     break;
 
     //// filter params:
@@ -123,16 +123,20 @@ void module_set_param(u32 idx, ParamValue v) {
 
     ///// slews
   case eParamHz1Slew:
+    //    filter_1p_lo_set_slew( &(osc[1].lpInc), v); 
     osc[1].lpInc.c = v;
     break;
   case eParamHz0Slew:
+    //    filter_1p_lo_set_slew( &(osc[0].lpInc), v); 
     osc[0].lpInc.c = v;
     break;
 
   case eParamPm01Slew:
+    //    filter_1p_lo_set_slew( &(osc[1].lpPm), v); 
     osc[1].lpPm.c = v;
     break;
   case eParamPm10Slew:
+    //    filter_1p_lo_set_slew( &(osc[0].lpPm), v); 
     osc[0].lpPm.c = v;
     break;
 
