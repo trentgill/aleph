@@ -262,7 +262,7 @@ u8 check_monome_device_desc(char* mstr, char* pstr, char* sstr) {
       setup_series(8, 16);
       return 1;
     }
-    if( strncmp(buf, "m128-", 5) == 0 ) {
+    if( strncmp(buf, "m256-", 5) == 0 ) {
       // series 256
       setup_series(16, 16);
       return 1;
@@ -342,6 +342,16 @@ void monome_arc_refresh(void) {
 // connect
 static inline void monome_connect_write_event(void) {
   u8* data = (u8*)(&(ev.data));
+  
+  print_dbg("\r\n posting monome connection event. ");
+  print_dbg(" device type: ");
+  print_dbg_ulong(mdesc.device);
+  print_dbg(" cols : ");
+  print_dbg_ulong(mdesc.cols);
+  print_dbg(" rows: ");
+  print_dbg_ulong(mdesc.rows);
+
+  ev.type = kEventMonomeConnect;
   ev.type = kEventMonomeConnect;
   *data++ = (u8)(mdesc.device); 	// device (8bits)
   *data++ = mdesc.cols;		// width / count
@@ -494,6 +504,7 @@ static inline void set_funcs(void) {
 
 // setup 40h-protocol device
 static void setup_40h(u8 cols, u8 rows) {
+  print_dbg("\r\n setup 40h device");
   mdesc.protocol = eProtocol40h;
   mdesc.device = eDeviceGrid;
   mdesc.cols = 8;
@@ -606,19 +617,51 @@ static u8 setup_mext(void) {
 /// (e.g. from usb transfer callback )
 
 static void read_serial_40h(void) {
+  u8* prx = ftdi_rx_buf();
+  u8 i;
+  rxBytes = ftdi_rx_bytes();
+  // print_dbg("\r\n read_serial_40h, byte count: ");
+  // print_dbg_ulong(rxBytes);
+  // print_dbg(" ; data : [ 0x");
+  // print_dbg_hex(prx[0]);
+  // print_dbg(" , 0x");
+  // print_dbg_hex(prx[1]);
+  // print_dbg(" ]");
+  i = 0;
+  while(i < rxBytes) {
+    // FIXME: can we expect other event types? (besides press/lift)
+    // print_dbg(" ; x : 0x");
+    // print_dbg_hex((prx[1] & 0xf0) >> 4);
+    // print_dbg("; y : 0x");
+    // print_dbg_hex(prx[1] & 0xf);
+    // print_dbg(" ; z : 0x");
+    // print_dbg_hex(   ((prx[0] & 0xf) != 0) );
+
+    // press event
+    if ((prx[0] & 0xf0) == 0) {
+      monome_grid_key_write_event( 
+        ((prx[1] & 0xf0) >> 4),
+        prx[1] & 0xf,
+        ((prx[0] & 0xf) != 0)
+      );
+    }
+    
+    i += 2;
+    prx += 2;
+  }
 }
 
 static void read_serial_series(void) {
   u8* prx = ftdi_rx_buf();
   u8 i;
   rxBytes = ftdi_rx_bytes();
-  /* print_dbg("\r\n read_serial_series, byte count: "); */
-  /* print_dbg_ulong(rxBytes); */
-  /* print_dbg(" ; data : [ 0x"); */
-  /* print_dbg_hex(prx[0]); */
-  /* print_dbg(" , 0x"); */
-  /* print_dbg_hex(prx[1]); */
-  /* print_dbg(" ]");   */
+  print_dbg("\r\n read_serial_series, byte count: ");
+  print_dbg_ulong(rxBytes);
+  print_dbg(" ; data : [ 0x");
+  print_dbg_hex(prx[0]);
+  print_dbg(" , 0x");
+  print_dbg_hex(prx[1]);
+  print_dbg(" ]");
   i = 0;
   while(i < rxBytes) {
     // FIXME: can we expect other event types? (besides press/lift)
@@ -738,7 +781,34 @@ static void grid_map_mext( u8 x, u8 y, const u8* data ) {
 
 
 static void grid_map_40h(u8 x, u8 y, const u8* data) {
-  // TODO : (use 8 row commands and ignore x/y)
+  // print_dbg("\n\r=== grid_map_40h ===");
+  static u8 i, j;
+  // ignore all but first quadrant -- do any devices larger than 8x8 speak 40h?
+  if (x != 0 || y != 0) {
+    return;
+  }
+  for(i=0; i<MONOME_QUAD_LEDS; i++) {
+    // led row command + row number
+    txBuf[(i*2)] = 0x70 + i;
+    txBuf[(i*2)+1] = 0;
+    // print_dbg("\r\n * data bytes: ");
+    for(j=0; j<MONOME_QUAD_LEDS; j++) {
+      // set row bit if led should be on
+      // print_dbg("0x");
+      // print_dbg_hex(*data);
+      // print_dbg(" ");
+      txBuf[(i*2)+1] |= ((*data > 0) << j);
+      // advance data to next bit
+      ++data;
+    }
+    // skip next 8 bytes to get to next row
+    data += MONOME_QUAD_LEDS;
+    // print_dbg("\n\r 40h: send led_row command: ");
+    // print_dbg_hex(txBuf[i*2]);
+    // print_dbg(" row data: 0x");
+    // print_dbg_hex(txBuf[(i*2) + 1]);
+  }
+  ftdi_write(txBuf, 16);
 }
 
 static void grid_map_series(u8 x, u8 y, const u8* data) {

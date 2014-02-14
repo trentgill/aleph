@@ -26,9 +26,13 @@
 #if NET_USE_MALLOC
 #else
 // size of operator pool in bytes
+#define NET_OP_POOL_SIZE 0x40000 // 256K
+//#define NET_OP_POOL_SIZE 0x20000 // 128K
 //#define NET_OP_POOL_SIZE 0x10000 // 64K
 //#define NET_OP_POOL_SIZE 0x08000 // 32K
-#define NET_OP_POOL_SIZE 0x04000 // 16K
+//#define NET_OP_POOL_SIZE 0x0c000 // 24K
+//#define NET_OP_POOL_SIZE 0x04000 // 16K
+
 #endif
 
 // input node type
@@ -63,8 +67,9 @@ typedef struct _pnode {
   ParamData data;
   ParamScaler scaler;
   u8 idx;
-  //// ah.. has no play inclusion flag
-  //  u8 preset;
+  // play inclusion flag
+  /// must be separate from inputs list for large input counts!
+  u8 play;
   //} __attribute__((packed)) pnode_t;
 } pnode_t;
 
@@ -126,6 +131,5 @@ extern op_sw_t* opSysSw[6];
 extern op_adc_t* opSysAdc;
 // preset
 extern op_preset_t* opSysPreset;
-
 
 #endif // header guard

@@ -33,6 +33,9 @@ static u8 inPresetSelect = 0;
 // in-clear-confirm stateS
 static u8 clearConfirm = 0;
 
+// selected input is zeroed
+static u8 zeroed = 0;
+
 // kludge:
 // constant pointer to this page's selection
 static s16* const pageSelect = &(pages[ePageIns].select);
@@ -136,6 +139,10 @@ static void select_scroll(s32 dir) {
     *pageSelect = newSel;
     // remove highlight from old center
     render_scroll_apply_hl(SCROLL_CENTER_LINE, 0);
+
+    // update 'zeroed' flag
+    zeroed = (net_get_in_value(*pageSelect) == 0);
+
     // add new content at top
     newIdx = newSel - SCROLL_LINES_BELOW;
     if(newIdx == -1) {
@@ -239,7 +246,11 @@ static void show_foot2(void) {
     }
 #endif
   } else {
-    font_string_region_clip(footRegion[2], "ZERO", 0, 0, 0xf, fill);
+    if(zeroed) {
+      font_string_region_clip(footRegion[2], "MAX", 0, 0, 0xf, fill);
+    } else {
+      font_string_region_clip(footRegion[2], "ZERO", 0, 0, 0xf, fill);
+    }
   }
 }
 
@@ -359,6 +370,7 @@ void select_ins(void) {
   app_event_handlers[ kEventSwitch1 ]	= &handle_key_1 ;
   app_event_handlers[ kEventSwitch2 ]	= &handle_key_2 ;
   app_event_handlers[ kEventSwitch3 ]	= &handle_key_3 ;
+
 }
 
 //========================================================
@@ -426,8 +438,15 @@ void handle_key_2(s32 val) {
     if(altMode) {
       // filter / all
     } else {
-      /// set to 0
-      net_set_in_value(*pageSelect, 0);
+      if(zeroed) { 
+	/// set to max
+	net_set_in_value(*pageSelect, OP_MAX_VAL);
+	zeroed = 0;
+      } else {
+	/// set to 0
+	net_set_in_value(*pageSelect, 0);
+	zeroed = 1;
+      }
       // render to tmp buffer
       render_line(*pageSelect, 0xf);
       // copy to scroll with highlight
@@ -456,13 +475,13 @@ void handle_key_3(s32 val) {
 }
 
 void handle_enc_0(s32 val) {
-  // change parameter value, slow
-  select_edit(scale_knob_value_small(val));
+  // change parameter value, accelerated
+  select_edit(scale_knob_value(val));
 }
 
 void handle_enc_1(s32 val) {
-  // change parameter value, fast
-  select_edit(scale_knob_value(val) << 16);
+  // change parameter value, unaccelerated
+  select_edit(scale_knob_value_small(val));
 }
 
 void handle_enc_2(s32 val) {
@@ -492,12 +511,37 @@ void handle_enc_3(s32 val) {
   }
 }
 
-// redraw all lines, based on current selection
+// redraw all lines, force selection
 void redraw_ins(void) {
   u8 i=0;
-  u8 n = *pageSelect - 3;
+  s32 n = *pageSelect - 3;
+  // num_ins() includes param count!
+  const s32 max = net_num_ins() - 1;
+
+  // set scroll region
+  // FIXME: should be separate function i guess
+  render_set_scroll(&centerScroll);
+
+  print_dbg("\r\n redraw_ins() ");
+
   while(i<8) {
-    render_line( n, 0xa );
+
+    if(n == -1) {
+      // draw a blank line
+      region_fill(lineRegion, 0);
+    } else if(n == (max+1)) {
+      // draw a blank line
+      region_fill(lineRegion, 0);
+    } else {
+      if(n < -1) {
+	n += (max + 2);
+      }
+      if( n > max ) {
+	n -= (max + 2);
+      }
+
+      render_line( n, 0xa );
+    }
     render_to_scroll_line(i, n == *pageSelect ? 1 : 0);
     ++i;
     ++n;
@@ -513,6 +557,10 @@ void redraw_ins_preset ( void ) {
   io_t opVal;
   s32 paramVal;
   s16 opIdx;
+
+
+  print_dbg("\r\n redraw_ins_preset() ");
+
 
   while(i<8) {
     region_fill(lineRegion, 0x0);
@@ -555,11 +603,8 @@ void redraw_ins_preset ( void ) {
 
 	if(enabled) {
 	  opVal = preset_get_selected()->ins[n].value;
-	  //	  print_dbg("\r\n 0x");
-	  //	  print_dbg_hex((u32)opVal);
 	} else {
 	  opVal = net_get_in_value(n);
-	  //	  print_dbg("\r\n ...");
 	}
 	op_print(lineBuf, opVal);
 

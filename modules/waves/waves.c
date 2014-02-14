@@ -27,24 +27,25 @@
 #include "params.h"
 #include "types.h"
 
+#include "waves.h"
+
+
+#define WAVES_NVOICES 2
 
 //-------- data types
-
 
 // define a local data structure that subclasses moduleData.
 // use this for all data that is large and/or not speed-critical.
 // this structure should statically allocate all necessary memory 
 // so it can simply be loaded at the start of SDRAM.
 typedef struct _wavesData {
-  moduleData super;
-  ParamDesc mParamDesc[eParamNumParams];
+  ModuleData super;
   ParamData mParamData[eParamNumParams];
 } wavesData;
 
 //-------------------------
 //----- extern vars (initialized here)
-moduleData * gModuleData; // module data
-
+ModuleData * gModuleData; // module data
 //-----------------------
 //------ static variables
 
@@ -59,49 +60,13 @@ static const fract32 wavtab[WAVE_TAB_NUM][WAVE_TAB_SIZE] = {
 #include "wavtab_data_inc.c" 
 };
 
-// static u32 sr;
-
-// oscillators
-static osc osc1;
-static osc osc2;
-
-// osc output busses
-static fract32 oscOut1 = 0;
-static fract32 oscOut2 = 0;
-
-// filters
-static filter_svf svf1;
-static filter_svf svf2;
-static fract32 fdry1 = FR32_MAX;
-static fract32 fdry2 = FR32_MAX;
-static fract32 fwet1 = 0;
-static fract32 fwet2 = 0;
-
-// filter output busses
-static fract32 svfOut1 = 0;
-static fract32 svfOut2 = 0;
-
-// osc amplitudes
-static fract32  oscAmp1;
-static fract32  oscAmp2;
-
-// amp smoothers
-static filter_1p_lo* amp1Lp;  
-static filter_1p_lo* amp2Lp;
-
-// dry I->O amplitudes
-static fract32 ioAmp0;
-static fract32 ioAmp1;
-static fract32 ioAmp2;
-static fract32 ioAmp3;
-
 /// FIXME
-static fract32 frameVal;
+// static fract32 frameVal;
 
-// dac values (u16, but use fract32 and audio integrators)
-static fract32 dacVal[4];
-static filter_1p_lo dacSlew[4];
-static u8 dacChan = 0;
+// 10v dac values (u16, but use fract32 and audio integrators, for now)
+static fract32 cvVal[4];
+static filter_1p_lo cvSlew[4];
+static u8 cvChan = 0;
 
 //----------------------
 //----- static function declaration
@@ -114,50 +79,113 @@ static inline void param_setup(u32 id, ParamValue v) {
   module_set_param(id, v);
 }
 
+
 // frame calculation
 static void calc_frame(void) {
-  fract32 out1, out2;
+  static u8 i;
+  static fract32 o;
+
+#if 1
+
+  // mix modulation input
+  //  mix_mod();
+
+  for(i=0; i<WAVES_NVOICES; ++i) {
+
+    //////// FIXME: macroize osc ?
+
+    // phase mod with fixed 1-frame delay
+    osc_pm_in( &(osc[i]), pmIn[i] );
+
+    // TODO: shape mod
+    // TODO: amp mod
+    // TODO: cutoff mod
+
+    // calculate oscillator output
+    o = oscOut[i] = shr_fr1x32( osc_next( &(osc[i]) ), 1);    
+
+    // process SVF param integrators
+    slew_exp_calc_frame( cutSlew[i] );
+    slew_exp_calc_frame( rqSlew[i] );
+
+    //////// FIXME: macroize SVF ?
+    // set svf params
+    filter_svf_set_coeff( &(svf[i]), (cutSlew[i]).y );
+    filter_svf_set_rq(	  &(svf[i]), (rqSlew[i]).y );
+
+    // calculate svf output
+    svfOut[i] = filter_svf_next( &(svf[i]), shr_fr1x32(o, 1) );
+
+    // process amp smoother
+    slew_exp_calc_frame( ampSlew[i] );
+    voiceAmp[i] = (ampSlew[i]).y;
+
+    // apply wet/dry/amp
+    //// TEST:
+    /* voiceOut[i] = mult_fr1x32x32( 0x7fffffff, */
+    /* 				  add_fr1x32(mult_fr1x32( oscOut[i], 0x7fff ), */
+    /* 					     mult_fr1x32( svfOut[i], 0x7fff ) */
+    /* 					     ) */
+    /* 				  ); */
+    
+    voiceOut[i] = mult_fr1x32x32( voiceAmp[i],
+				  add_fr1x32(mult_fr1x32( trunc_fr1x32(oscOut[i]), fDry[i] ),
+					     mult_fr1x32( trunc_fr1x32(svfOut[i]), fWet[i] )
+					     )
+				  );
+  }
+
+  // mix outputs
+  out[0] = out[1] = out[2] = out[3] = 0;
+  mix_voice(voiceOut, out, (fract16**)mix_osc_dac);
+  mix_adc(in, out, (fract16**)mix_adc_dac);
+  //  mix_adc();	
+
+#else
+  /* wavesVoice* v; */
+
+  /* for(i=0; i<WAVES_NVOICES; i++) { */
+  /*   v = &(voice[i]); */
+  /*   // oscillator class includes hz and mod integrators */
+  /*   v->oscOut = shr_fr1x32( osc_next( &(v->osc) ), 2); */
+
+  /*   // phase mod with fixed 1-frame delay */
+  /*   osc_pm_in( &(v->osc), v->pmIn ); */
+  /*   // shape mod with fixed 1-frame delay */
+  /*   osc_wm_in( &(v->osc), v->wmIn ); */
+  /*   // process filter integrators and set  */
+
+  /*   slew_exp_calc_frame( v->cutSlew ); */
+  /*   slew_exp_calc_frame( v->rqSlew ); */
+
+  /*   filter_svf_set_coeff( &(v->svf), (v->cutSlew).y ); */
+  /*   filter_svf_set_rq( &(v->svf), (v->rqSlew).y ); */
+
+  /*   // process filter */
+  /*   v->svfOut = filter_svf_next( &(v->svf), shr_fr1x32(v->oscOut, 1) ); */
+  /*   // process amp smoother */
+  /*   //    v->amp  = filter_1p_lo_next( &(v->ampSlew) ); */
+  /*   slew_exp_calc_frame( v->ampSlew ); */
+  /*   v->amp = (v->ampSlew).y; */
+
+  /*   // mix to output bus */
+  /*   v->out = mult_fr1x32x32(v->amp, */
+  /* 			    add_fr1x32(mult_fr1x32x32( v->oscOut, v->fDry), */
+  /* 				       mult_fr1x32x32( v->svfOut, v->fWet) */
+  /* 				       ) */
+  /* 			    ); */
+  /* } // end voice loop */
+
+  /* /// FIXME: later, more voices, mod matrix, arbitrary mod delay. */
+  /* /// for now, simple direct mod feedback routing and 1-frame delay. */
+  /* voice[0].pmIn = voice[1].oscOut; */
+  /* //  voice[0].wmIn = voice[1].oscOut << 1; */
+  /* voice[1].pmIn = voice[0].oscOut; */
+  /* //  voice[1].wmIn = voice[0].oscOut << 1; */
   
-  // osc output
-  oscOut1 = shr_fr1x32(osc_next( &(osc1) ), 2);
-  oscOut2 = shr_fr1x32(osc_next( &(osc2) ), 2);
-
-  // phase mod feedback with 1frame delay
-  osc_pm_in( &osc1, oscOut2 );
-  osc_pm_in( &osc2, oscOut1 );
-
-  // shape mod feedback with 1frame delay
-  osc_wm_in( &osc1, oscOut2 );
-  osc_wm_in( &osc2, oscOut1 );
-
-  ///////////
-  ///////////
-  // apply filters
-
-  //  svfOut1 = shl_fr1x32(filter_svf_next( &(svf1), shr_fr1x32(oscOut1, 1)), 1);
-  //  svfOut2 = shl_fr1x32(filter_svf_next( &(svf2), shr_fr1x32(oscOut2, 1)), 1);
-  svfOut1 = filter_svf_next( &(svf1), shr_fr1x32(oscOut1, 1));
-  svfOut2 = filter_svf_next( &(svf2), shr_fr1x32(oscOut2, 1));
-
-  /////////
-  /////////
-
-  // amp smoothers
-  oscAmp1 = filter_1p_lo_next(amp1Lp);
-  oscAmp2 = filter_1p_lo_next(amp2Lp);
-
-  // apply osc amplitudes and sum 
-  out1 = mult_fr1x32x32(oscAmp1,
-			add_fr1x32(mult_fr1x32x32( oscOut1, fdry1),
-				   mult_fr1x32x32( svfOut1, fwet1)
-				   ));
-  
-  out2 = mult_fr1x32x32(oscAmp2,
-			add_fr1x32(mult_fr1x32x32( oscOut2, fdry2),
-				   mult_fr1x32x32( svfOut2, fwet2)
-				   ));
-
-  frameVal = add_fr1x32( out1, out2);
+  /* // mix outputs using matrix */
+  /* mix_outputs(); */
+#endif
   
 }
 
@@ -165,7 +193,7 @@ static void calc_frame(void) {
 //----- external functions
 
 void module_init(void) {
-  u32 i;
+  int i;
 
   // init module/param descriptor
   // intialize local data at start of SDRAM
@@ -173,66 +201,69 @@ void module_init(void) {
   // initialize moduleData superclass for core routines
   gModuleData = &(data->super);
   strcpy(gModuleData->name, "aleph-waves");
-  gModuleData->paramDesc = data->mParamDesc;
   gModuleData->paramData = data->mParamData;
   gModuleData->numParams = eParamNumParams;
 
-  // fill param values with minima as default
-  for(i=0; i<eParamNumParams; ++i) {
-    gModuleData->paramData[i].value = gModuleData->paramDesc[i].min;
+  /* // fill param values with minima as default */
+  /* for(i=0; i<eParamNumParams; ++i) { */
+  /*   gModuleData->paramData[i].value = gModuleData->paramDesc[i].min; */
+  /* } */
+
+  for(i=0; i<WAVES_NVOICES; i++) {
+    fract32 tmp = FRACT32_MAX >> 2;
+    /* osc_init( &(voice[i].osc), &wavtab, SAMPLERATE ); */
+    /* filter_svf_init( &(voice[i].svf) ); */
+    /* voice[i].amp = tmp; */
+
+    osc_init( &(osc[i]), &wavtab, SAMPLERATE );
+    filter_svf_init( &(svf[i]) );
+    voiceAmp[i] = tmp;
+
+    /* filter_1p_lo_init(&(voice[i].ampSlew), 0xf); */
+    /* filter_1p_lo_init(&(voice[i].cutSlew), 0xf); */
+    /* filter_1p_lo_init(&(voice[i].rqSlew), 0xf); */
+    slew_exp_init(ampSlew[i], PARAM_AMP_12);
+    slew_exp_init(cutSlew[i], PARAM_CUT_DEFAULT);
+    slew_exp_init(rqSlew[i], PARAM_RQ_DEFAULT);
+    
   }
 
-  osc_init( &osc1, &wavtab, SAMPLERATE );
-  osc_init( &osc2, &wavtab, SAMPLERATE );
-
-  oscAmp1 = oscAmp2 = INT32_MAX >> 2;
-
-  osc_set_hz( &osc1, fix16_from_int(220) );
-  osc_set_hz( &osc2, fix16_from_int(330) );
-
-  ioAmp0 = FR32_MAX;
-  ioAmp1 = FR32_MAX;
-  ioAmp2 = FR32_MAX;
-  ioAmp3 = FR32_MAX;
-
+  //  oscAmp1 = oscAmp0 = INT32_MAX >> 2;
 
   // filters
-  filter_svf_init(&(svf1));
-  filter_svf_init(&(svf2));    
+  /* filter_svf_init(&(svf1)); */
+  /* filter_svf_init(&(svf0));     */
 
   // allocate smoothers
-  amp1Lp = (filter_1p_lo*)malloc(sizeof(filter_1p_lo));
-  filter_1p_lo_init( amp1Lp, oscAmp1 );
+  //  amp1Lp = (filter_1p_lo*)malloc(sizeof(filter_1p_lo));
+  //  filter_1p_lo_init( amp1Lp, oscAmp1 );
 
-  amp2Lp = (filter_1p_lo*)malloc(sizeof(filter_1p_lo));
-  filter_1p_lo_init( amp2Lp, oscAmp2 );
+  /* amp0Lp = (filter_1p_lo*)malloc(sizeof(filter_1p_lo)); */
+  /* filter_1p_lo_init( amp0Lp, oscAmp0 ); */
 
   // dac
-  filter_1p_lo_init( &(dacSlew[0]), 0xf );
-  filter_1p_lo_init( &(dacSlew[1]), 0xf );
-  filter_1p_lo_init( &(dacSlew[2]), 0xf );
-  filter_1p_lo_init( &(dacSlew[3]), 0xf );
+  filter_1p_lo_init( &(cvSlew[0]), 0xf );
+  filter_1p_lo_init( &(cvSlew[1]), 0xf );
+  filter_1p_lo_init( &(cvSlew[2]), 0xf );
+  filter_1p_lo_init( &(cvSlew[3]), 0xf );
 
-
-  // write descriptors
-  /// FIXME: eliminate and move offline !
-  fill_param_desc();
 
   // set parameters to defaults
-  param_setup(  eParamFreq1, 	220 << 16 );
-  param_setup(  eParamFreq2, 	330 << 16 );
+  param_setup(  eParamHz1, 	220 << 16 );
+  param_setup(  eParamHz0, 	330 << 16 );
   param_setup(  eParamTune1, 	FIX16_ONE );
-  param_setup(  eParamTune2, 	FIX16_ONE );
+  param_setup(  eParamTune0, 	FIX16_ONE );
   param_setup(  eParamWave1, 	0 );
-  param_setup(  eParamWave2, 	0 );
+  param_setup(  eParamWave0, 	0 );
   param_setup(  eParamAmp1, 	PARAM_AMP_6 );
-  param_setup(  eParamAmp2, 	PARAM_AMP_6 );
-  param_setup(  eParamPm12, 	0 );
-  param_setup(  eParamPm21, 	0 );
-  param_setup(  eParamWm12, 	0 );
-  param_setup(  eParamWm21, 	0 );
+  param_setup(  eParamAmp0, 	PARAM_AMP_6 );
+  param_setup(  eParamPm10, 	0 );
+  param_setup(  eParamPm01, 	0 );
+  param_setup(  eParamWm10, 	0 );
+  param_setup(  eParamWm01, 	0 );
   param_setup(  eParamBl1,  	0 );
-  param_setup(  eParamBl2,  	0 );
+  param_setup(  eParamBl0,  	0 );
+
   param_setup(  eParam_cut1,	PARAM_CUT_DEFAULT);
   param_setup(  eParam_rq1,	PARAM_RQ_DEFAULT);
   param_setup(  eParam_low1,       PARAM_AMP_6 );
@@ -241,43 +272,63 @@ void module_init(void) {
   param_setup(  eParam_notch1,	0 );
   param_setup(  eParam_fwet1,	PARAM_AMP_6 );
   param_setup(  eParam_fdry1,	PARAM_AMP_6 );
-  param_setup(  eParam_cut2, 	PARAM_CUT_DEFAULT );
-  param_setup(  eParam_rq2, 	PARAM_RQ_DEFAULT );
-  param_setup(  eParam_low2,	FRACT32_MAX >> 1 );
-  param_setup(  eParam_high2,	0 );
-  param_setup(  eParam_band2,	0 );
-  param_setup(  eParam_notch2,	0 );
-  param_setup(  eParam_fwet2,	PARAM_AMP_6 );
-  param_setup(  eParam_fdry2,	PARAM_AMP_6 );
-  param_setup(  eParamFreq1Smooth, PARAM_SMOOTH_DEFAULT );
-  param_setup(  eParamFreq2Smooth, PARAM_SMOOTH_DEFAULT );
-  param_setup(  eParamPm12Smooth, 	PARAM_SMOOTH_DEFAULT );
-  param_setup(  eParamPm21Smooth, 	PARAM_SMOOTH_DEFAULT );
-  param_setup(  eParamWm12Smooth, 	PARAM_SMOOTH_DEFAULT );
-  param_setup(  eParamWm21Smooth, 	PARAM_SMOOTH_DEFAULT );
-  param_setup(  eParamWave1Smooth, PARAM_SMOOTH_DEFAULT );
-  param_setup(  eParamWave2Smooth, PARAM_SMOOTH_DEFAULT );
-  param_setup(  eParamAmp1Smooth, 	PARAM_SMOOTH_DEFAULT );
-  param_setup(  eParamAmp2Smooth, PARAM_SMOOTH_DEFAULT );
-  param_setup(  eParamIoAmp0, 	FRACT32_MAX );
-  param_setup(  eParamIoAmp1,  	FRACT32_MAX );
-  param_setup(  eParamIoAmp2, 	FRACT32_MAX );
-  param_setup(  eParamIoAmp3, 	FRACT32_MAX );
-  param_setup(  eParam_dacVal0, 	FRACT32_MAX >> 1 );
-  param_setup(  eParam_dacVal1, 	FRACT32_MAX >> 1 );
-  param_setup(  eParam_dacVal2, 	FRACT32_MAX >> 1 );
-  param_setup(  eParam_dacVal3, 	FRACT32_MAX >> 1 );
-  param_setup(  eParam_dacSlew0, 	PARAM_SMOOTH_DEFAULT );
-  param_setup(  eParam_dacSlew1, 	PARAM_SMOOTH_DEFAULT );
-  param_setup(  eParam_dacSlew2, 	PARAM_SMOOTH_DEFAULT );
-  param_setup(  eParam_dacSlew3, 	PARAM_SMOOTH_DEFAULT );
+  param_setup(  eParam_cut0, 	PARAM_CUT_DEFAULT );
+  param_setup(  eParam_rq0, 	PARAM_RQ_DEFAULT );
+  param_setup(  eParam_low0,	FRACT32_MAX >> 1 );
+  param_setup(  eParam_high0,	0 );
+  param_setup(  eParam_band0,	0 );
+  param_setup(  eParam_notch0,	0 );
+  param_setup(  eParam_fwet0,	PARAM_AMP_6 );
+  param_setup(  eParam_fdry0,	PARAM_AMP_6 );
+
+  param_setup(  eParamHz1Slew, PARAM_SLEW_DEFAULT );
+  param_setup(  eParamHz0Slew, PARAM_SLEW_DEFAULT );
+  param_setup(  eParamPm10Slew, 	PARAM_SLEW_DEFAULT );
+  param_setup(  eParamPm01Slew, 	PARAM_SLEW_DEFAULT );
+  param_setup(  eParamWm10Slew, 	PARAM_SLEW_DEFAULT );
+  param_setup(  eParamWm01Slew, 	PARAM_SLEW_DEFAULT );
+  param_setup(  eParamWave1Slew, PARAM_SLEW_DEFAULT );
+  param_setup(  eParamWave0Slew, PARAM_SLEW_DEFAULT );
+  param_setup(  eParamAmp1Slew, 	PARAM_SLEW_DEFAULT );
+  param_setup(  eParamAmp0Slew, PARAM_SLEW_DEFAULT );
+ 
+  param_setup(  eParamCut0Slew, PARAM_SLEW_DEFAULT );
+  param_setup(  eParamCut1Slew, PARAM_SLEW_DEFAULT );
+  param_setup(  eParamRq0Slew, PARAM_SLEW_DEFAULT );
+  param_setup(  eParamRq1Slew, PARAM_SLEW_DEFAULT );
+
+  param_setup(  eParam_adc0_dac0, 	FRACT32_MAX );
+  param_setup(  eParam_adc1_dac1,  	FRACT32_MAX );
+  param_setup(  eParam_adc2_dac2, 	FRACT32_MAX );
+  param_setup(  eParam_adc3_dac3, 	FRACT32_MAX );
+
+  param_setup(  eParam_osc0_dac0, 	FRACT32_MAX );
+  param_setup(  eParam_osc0_dac1,  	FRACT32_MAX );
+  param_setup(  eParam_osc0_dac2, 	FRACT32_MAX );
+  param_setup(  eParam_osc0_dac3, 	FRACT32_MAX );
+  param_setup(  eParam_osc1_dac0, 	FRACT32_MAX );
+  param_setup(  eParam_osc1_dac1,  	FRACT32_MAX );
+  param_setup(  eParam_osc1_dac2, 	FRACT32_MAX );
+  param_setup(  eParam_osc1_dac3, 	FRACT32_MAX );
+
+  param_setup(  eParam_cvVal0, 	FRACT32_MAX >> 1 );
+  param_setup(  eParam_cvVal1, 	FRACT32_MAX >> 1 );
+  param_setup(  eParam_cvVal2, 	FRACT32_MAX >> 1 );
+  param_setup(  eParam_cvVal3, 	FRACT32_MAX >> 1 );
+  param_setup(  eParam_cvSlew0, 	PARAM_SLEW_DEFAULT );
+  param_setup(  eParam_cvSlew1, 	PARAM_SLEW_DEFAULT );
+  param_setup(  eParam_cvSlew2, 	PARAM_SLEW_DEFAULT );
+  param_setup(  eParam_cvSlew3, 	PARAM_SLEW_DEFAULT );
+
+  
 
 }
 
 // de-init
 void module_deinit(void) {
-  free(amp1Lp);
-  free(amp2Lp);
+  /// why bother, it never happens!
+  /* free(amp1Lp); */
+  /* free(amp0Lp); */
 }
 
 
@@ -291,20 +342,19 @@ void module_process_frame(void) {
 
   calc_frame();
 
-  out[0] = add_fr1x32(frameVal, mult_fr1x32x32(in[0], ioAmp0));
-  out[1] = add_fr1x32(frameVal, mult_fr1x32x32(in[1], ioAmp1));
-  out[2] = add_fr1x32(frameVal, mult_fr1x32x32(in[2], ioAmp2));
-  out[3] = add_fr1x32(frameVal, mult_fr1x32x32(in[3], ioAmp3));
+  /* out[0] = add_fr1x32(frameVal, mult_fr1x32x32(in[0], ioAmp0)); */
+  /* out[1] = add_fr1x32(frameVal, mult_fr1x32x32(in[1], ioAmp1)); */
+  /* out[2] = add_fr1x32(frameVal, mult_fr1x32x32(in[2], ioAmp2)); */
+  /* out[3] = add_fr1x32(frameVal, mult_fr1x32x32(in[3], ioAmp3)); */
   
-  
-  if(dacSlew[dacChan].sync) { ;; } else {
-    dacVal[dacChan] = filter_1p_lo_next(&(dacSlew[dacChan]));
-    dac_update(dacChan, dacVal[dacChan]);
-  }
- 
-  if(++dacChan == 4) {
-    dacChan = 0;
-  }
+  //  if(cvSlew[cvChan].sync) { ;; } else {
+  //    cvVal[cvChan] = filter_1p_lo_next(&(cvSlew[cvChan]));
+  //    dac_update(cvChan, cvVal[cvChan]);
+    //  }
+
+  cvVal[cvChan] = filter_1p_lo_next(&(cvSlew[cvChan]));
+  dac_update(cvChan, cvVal[cvChan]);
+  cvChan = (cvChan + 1) & 0x3;
   
 }
 

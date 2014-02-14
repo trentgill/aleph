@@ -82,14 +82,10 @@ static void handle_Switch5(s32 data) {
   render_boot("");
   render_boot("powering down");
 
-
   // skip flash write if MODE is down
-  if(!gpio_get_pin_value(SW_MODE_PIN)) 
+  if(!gpio_get_pin_value(SW_MODE_PIN)) {
     scene_write_default();
-
-  //  //// TEST: write to filesystem!
-  //  files_store_scene_name("test_default.scn");
-  //  files_store_test_scene();
+  }
 
   // power down
   delay_ms(100);
@@ -99,17 +95,15 @@ static void handle_Switch5(s32 data) {
 static void handle_Switch6(s32 data) {
   // footswitch 1
   op_sw_sys_input(opSysSw[4], data > 0);
-  //  net_activate(net_op_in_idx(opSysSwIdx[4], 0), data, NULL);
 }
 
 static void handle_Switch7(s32 data) { 
   // footswitch 2
-
   op_sw_sys_input(opSysSw[5], data > 0);
-  //  net_activate(net_op_in_idx(opSysSwIdx[5], 0), data, NULL);
 } 
 
 static void handle_MonomeConnect(s32 data) { 
+  print_dbg("\r\n received MonomeConnect event in BEES");
   timers_set_monome();
 }
 
@@ -122,6 +116,9 @@ static void handle_MonomeGridKey(s32 data) {
   // this is so bees can arbitrate focus between multiple grid ops.
   /// FIXME: we need to differentiate between multiple devices.
   /// of course, first we need USB hub support.
+  
+  print_dbg("\r\n monome grid key event in BEES.");
+
   (*monome_grid_key_handler)(monomeOpFocus, data);
 }
 
@@ -201,54 +198,13 @@ void assign_bees_event_handlers(void) {
 
 #if IO_BITS == 16
 // full-scale
-io_t scale_knob_value(io_t val) {
-  static const u8 kNumKnobScales_1 = 23;
-  static const s16 knobScale[24] = {
-    ///--- 3 linear segments:
-    // slope = 1
-    0x0001, // 1
-    0x0002, // 2
-    0x0003, // 3
-    // slope = 0x10
-    0x0030, // 4
-    0x0040, // 5
-    0x0050, // 6
-    0x0060, // 7
-    0x0070, // 8
-    0x0080, // 9
-    0x0090 ,  // 10
-    0x00a0 , // 11
-    0x00b0 , // 12
-    // slope = 0x100
-    0x0c00 , // 13
-    0x0d00 , // 14
-    0x0e00 , // 15
-    0x0f00 , // 16
-    0x1000 , // 17
-    0x1100 , // 18
-    0x1200 , // 19
-    0x1300 , // 20
-    0x1400 , // 21
-    0x1500 , // 22
-    // ultra fast
-    0x2000 , // 23
-    0x4000 , // 24
-  };
-  s16 vabs = BIT_ABS_16(val);
-  s16 ret = val;
-
-  if(vabs > kNumKnobScales_1) {
-    vabs = kNumKnobScales_1;
-  }
-  ret = knobScale[vabs - 1];
-  if(val < 0) {
-    ret = BIT_NEG_ABS_16(ret);
-  }
-  return ret;
+io_t scale_knob_value_small(io_t val) {
+  // ha!
+  return val;
 }
 
 // lower slope
-io_t scale_knob_value_small(io_t val) {
+io_t scale_knob_value(io_t val) {
   static const u32 kNumKnobScales_1 = 23;
   static const u32 knobScale[24] = {
     ///--- 3 linear segments:

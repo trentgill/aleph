@@ -14,6 +14,7 @@
 #include "net.h"
 #include "pages.h"
 #include "render.h"
+#include "scene.h"
 
 //-------------------------
 //---- static variables
@@ -36,18 +37,6 @@ static void handle_key_0(s32 val);
 static void handle_key_1(s32 val);
 static void handle_key_2(s32 val);
 static void handle_key_3(s32 val);
-
-/* // array of handlers */
-/* const page_handler_t handler_dsp[eNumPageHandlers] = { */
-/*   &handle_enc_0, */
-/*   &handle_enc_1, */
-/*   &handle_enc_2, */
-/*   &handle_enc_3, */
-/*   &handle_key_0, */
-/*   &handle_key_1, */
-/*   &handle_key_2, */
-/*   &handle_key_3, */
-/* }; */
 
 // fill tmp region with new content
 // given input index
@@ -161,51 +150,59 @@ void handle_key_0(s32 val) {
   // load module
   if(val == 0) { return; }
   if(check_key(0)) {
-    region_fill(headRegion, 0x0);
-    font_string_region_clip(headRegion, "loading DSP module...", 0, 0, 0xa, 0);
-    headRegion->dirty = 1;
-    render_update();
-    
+    notify("loading...");
+    // don't do this! let it break?
+    //    net_clear_user_ops();
+    // disconnect parameters though
+    net_disconnect_params();
+
     files_load_dsp(*pageSelect);
+
     bfin_wait_ready();
-    net_report_params();
+
+    scene_query_module();
+
+    //// FIXME: use .dsc, file_load_dsp calls directly
+    //    net_report_params();
+    
+
     bfin_enable();
 
-    // render status to head region 
-    region_fill(headRegion, 0x0);
-    font_string_region_clip(headRegion, "finished loading.", 0, 0, 0xa, 0);
-    headRegion->dirty = 1;
-    render_update();
+    redraw_ins();
+    redraw_dsp();
 
+    notify("finished loading.");
   }
   show_foot();
 }
 
 void handle_key_1(s32 val) {
+    /// FIXME:
+#if 0 // don't store DSP in flash for now
   if(val == 0) { return; }
   if(check_key(1)) {
     // render status to head region  
-    region_fill(headRegion, 0x0);
-    font_string_region_clip(headRegion, "writing DSP module to flash...", 0, 0, 0xa, 0);
-    headRegion->dirty = 1;
-    render_update();
+    notify("writing...");
     // write module as default 
-    files_store_default_dsp(*pageSelect);
-    // render status to head region 
-    region_fill(headRegion, 0x0);
-    font_string_region_clip(headRegion, "finished writing.", 0, 0, 0xa, 0);
-    headRegion->dirty = 1;
-    render_update();
+    //    files_store_default_dsp(*pageSelect);
+
+
+    notify("done writing.");
   }
   show_foot();
+#endif  
 }
 
+
+///????
 void handle_key_2(s32 val) {
+  /*
   if(check_key(2)) {
     bfin_disable();
-    net_report_params();
+    //    net_report_params();
     bfin_enable();
   }
+  */
 }
 
 void handle_key_3(s32 val) {
@@ -269,7 +266,7 @@ void select_dsp(void) {
   render_set_scroll(&centerScroll);
   // other regions are static in top-level render, with global handles
   region_fill(headRegion, 0x0);
-  font_string_region_clip(headRegion, "DSP", 0, 0, 0xf, 0x1);
+  font_string_region_clip(headRegion, "MODULES", 0, 0, 0xf, 0x1);
   // assign handlers
   app_event_handlers[ kEventEncoder0 ]	= &handle_enc_0 ;
   app_event_handlers[ kEventEncoder1 ]	= &handle_enc_1 ;
@@ -284,8 +281,15 @@ void select_dsp(void) {
 
 // redraw all lines, based on current selection
 void redraw_dsp(void) {
-  u8 i=0;
+  u8 i=0; 
   u8 n = *pageSelect - 3;
+
+  // set scroll region
+  // FIXME: should be separate function i guess
+  render_set_scroll(&centerScroll);
+
+
+  print_dbg("\r\n redraw_dsp() ");
   while(i<8) {
     render_line( n, 0xa );
     render_to_scroll_line(i, n == *pageSelect ? 1 : 0);

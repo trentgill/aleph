@@ -65,11 +65,16 @@ void bfin_load_buf(void) {
   ////
   /////////
 
-
+  ////////////
+  //// tESTING don't check
+#if 0
   if(bfinLdrSize > BFIN_LDR_MAX_BYTES) {
     print_dbg("\r\n bfin load error: size : "); print_dbg_hex(bfinLdrSize);
     return;
   }
+#endif
+  ///////////////
+  ////////////////
 
   app_pause();
 
@@ -87,7 +92,7 @@ void bfin_load_buf(void) {
 //void bfin_set_param(u8 idx, f32 x ) {
 void bfin_set_param(u8 idx, fix16_t x ) {
   //static u32 ticks = 0;
-  ParamValueCommon pval;
+  ParamValueSwap pval;
   pval.asInt = (s32)x;
 
   print_dbg("\r\n bfin_set_param, idx: ");
@@ -165,8 +170,16 @@ void bfin_get_num_params(volatile u32* num) {
 
 }
 
+
+
+/// moving param descriptor offline
+#if 1
+//void bfin_get_param_desc(u16 paramIdx, volatile ParamDesc* pDesc) {
+  //...
+//}
+#else 
 void bfin_get_param_desc(u16 paramIdx, volatile ParamDesc* pDesc) {
-  ParamValueCommon pval;
+  ParamValueSwap pval;
   u16 x; // u16 for spi_read()
   u8 i;
 
@@ -224,13 +237,16 @@ void bfin_get_param_desc(u16 paramIdx, volatile ParamDesc* pDesc) {
   pDesc->max = pval.asInt;
 
   // read radix
-    spi_selectChip(BFIN_SPI, BFIN_SPI_NPCS);
-    spi_write(BFIN_SPI, 0); //dont care
-    spi_read(BFIN_SPI, &x);
-    spi_unselectChip(BFIN_SPI, BFIN_SPI_NPCS);
-    pDesc->radix = (u8)(x & 0xff);
+  spi_selectChip(BFIN_SPI, BFIN_SPI_NPCS);
+  spi_write(BFIN_SPI, 0); //dont care
+  spi_read(BFIN_SPI, &x);
+  spi_unselectChip(BFIN_SPI, BFIN_SPI_NPCS);
+  pDesc->radix = (u8)(x & 0xff);
+
   app_resume();
 }
+#endif
+
 
 // get module name
 void bfin_get_module_name(volatile char* buf) {
@@ -255,33 +271,47 @@ void bfin_get_module_name(volatile char* buf) {
 }
 
 // get module version
-void bfin_get_module_version(moduleVersion_t* vers) {
-  //  u16 x;
+void bfin_get_module_version(ModuleVersion* vers) {
+  u16 x;
   
-  /* // command  */
-  /* spi_selectChip(BFIN_SPI, BFIN_SPI_NPCS); */
-  /* spi_write(BFIN_SPI, MSG_GET_MODULE_VERSION_COM); */
-  /* spi_unselectChip(BFIN_SPI, BFIN_SPI_NPCS); */
-  /* // major */
-  /* spi_selectChip(BFIN_SPI, BFIN_SPI_NPCS); */
-  /* spi_read(BFIN_SPI, &x); */
-  /* spi_unselectChip(BFIN_SPI, BFIN_SPI_NPCS); */
-  /* vers->maj = x; */
-  /* // minor */
-  /* spi_selectChip(BFIN_SPI, BFIN_SPI_NPCS); */
-  /* spi_read(BFIN_SPI, &x); */
-  /* spi_unselectChip(BFIN_SPI, BFIN_SPI_NPCS); */
-  /* vers->min = x; */
-  /*   // rev high */
-  /* spi_selectChip(BFIN_SPI, BFIN_SPI_NPCS); */
-  /* spi_read(BFIN_SPI, &x); */
-  /* spi_unselectChip(BFIN_SPI, BFIN_SPI_NPCS); */
-  /* vers->rev |= (x << 8) & 0xff; */
-  /*   // rev low */
-  /* spi_selectChip(BFIN_SPI, BFIN_SPI_NPCS); */
-  /* spi_read(BFIN_SPI, &x); */
-  /* spi_unselectChip(BFIN_SPI, BFIN_SPI_NPCS); */
-  /* vers->rev |= x & 0xff; */
+  app_pause();
+
+  // command
+  spi_selectChip(BFIN_SPI, BFIN_SPI_NPCS);
+  spi_write(BFIN_SPI, MSG_GET_MODULE_VERSION_COM);
+  spi_unselectChip(BFIN_SPI, BFIN_SPI_NPCS);
+
+  // major
+  spi_selectChip(BFIN_SPI, BFIN_SPI_NPCS);
+    spi_write(BFIN_SPI, 0); //dont care
+  spi_read(BFIN_SPI, &x);
+  spi_unselectChip(BFIN_SPI, BFIN_SPI_NPCS);
+  vers->maj = x;
+
+  // minor
+  spi_selectChip(BFIN_SPI, BFIN_SPI_NPCS);
+    spi_write(BFIN_SPI, 0); //dont care
+  spi_read(BFIN_SPI, &x);
+  spi_unselectChip(BFIN_SPI, BFIN_SPI_NPCS);
+  vers->min = x;
+
+  // rev
+  vers->rev = 0;
+  // rev high
+  spi_selectChip(BFIN_SPI, BFIN_SPI_NPCS);
+    spi_write(BFIN_SPI, 0); //dont care
+  spi_read(BFIN_SPI, &x);
+  spi_unselectChip(BFIN_SPI, BFIN_SPI_NPCS);
+  vers->rev |= ((x << 8) & 0xff00);
+
+    // rev low
+  spi_selectChip(BFIN_SPI, BFIN_SPI_NPCS);
+    spi_write(BFIN_SPI, 0); //dont care
+  spi_read(BFIN_SPI, &x);
+  spi_unselectChip(BFIN_SPI, BFIN_SPI_NPCS);
+  vers->rev |= (x & 0x00ff);
+
+  app_resume();
 }
 
 
@@ -335,7 +365,7 @@ void bfin_wait_ready(void) {
 
 // get parameter value
 s32 bfin_get_param(u8 idx) {
-  ParamValueCommon pval;
+  ParamValueSwap pval;
   u16 x;
   
   app_pause();

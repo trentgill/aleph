@@ -17,12 +17,13 @@
 #include "param.h"
 #include "bfin.h"
 
-
 // get value for param at given idx
 io_t get_param_value(u32 idx) {
   return (io_t)(net->params[idx].data.value); 
 }
 
+///// preset-enabled is stored by input node
+//// network 
 // get preset-enabled flag for param at given idx
 /* u8 get_param_preset(u32 idx) { */
 /*   return net->params[idx].preset; */
@@ -38,31 +39,20 @@ const char* get_param_name(u32 idx) {
 //-- see also net_set_in_value()
 // return sign of clamping operation, if clamped
 void set_param_value(u32 idx, io_t val) {
-  
   s32 scaled = scaler_get_value( &(net->params[idx].scaler), val);
-
   /* print_dbg("\r\n set_param_value, index: "); */
   /* print_dbg_ulong(idx); */
-
   /* print_dbg(" , value: 0x"); */
   /* print_dbg_hex(val); */
-
   /* print_dbg(" , scaled: 0x"); */
   /* print_dbg_hex(scaled); */
     
-  /* if(val > net->params[idx].desc.max) { */
-  /*   val = net->params[idx].desc.max; */
-  /* } */
-  /* if(val < net->params[idx].desc.min) { */
-  /*   val = net->params[idx].desc.min; */
-  /* } */
-
+  // netowrk data holds linear input value
   net->params[idx].data.value = val;
   net->params[idx].data.changed = 1;
 
   // scale
   ctl_param_change(idx, scaled );
-  //  ctl_param_change(idx, net->params[idx].data.value);
 }
 
 
@@ -80,8 +70,9 @@ u8* param_pickle(pnode_t* pnode, u8* dst) {
   val = (u32)(pnode->data.value);
   dst = pickle_32(val, dst);
 
-  // store preset-inclusion 
-  //  dst = pickle_32((u32)(pnode->preset), dst);
+  // store play-inclusion 
+  dst = pickle_32((u32)(pnode->play), dst);
+
   // store descriptor
   dst = pdesc_pickle(&(pnode->desc), dst);
   return dst;
@@ -100,18 +91,21 @@ const u8* param_unpickle(pnode_t* pnode, const u8* src) {
   
   src = unpickle_32(src, &val);
   pnode->data.value = (ParamValue)val;
+
+  //  print_dbg(" , val: ");
+  //  print_dbg_ulong(val);
   //  src = unpickle_32(src, &(pnode->data.value.asUint));
 
   // print_dbg("\r\n unpickled param value: ");
   // print_dbg_ulong(val);
 
-  // load preset-inclusion 
-  //  src = unpickle_32(src, &val);
+  // load play-inclusion 
+  src = unpickle_32(src, &val);
+  pnode->play = (u8)val;
 
   // print_dbg("\r\n unpickled param preset flag: ");
   // print_dbg_ulong(val);
 
-  //  pnode->preset = (u8)val;
   // load descriptor
   src = pdesc_unpickle(&(pnode->desc), src);
   return src;
@@ -126,62 +120,61 @@ u8* pdesc_pickle(ParamDesc* pdesc, u8* dst) {
     *dst = pdesc->label[i];
     ++dst;
   }
-  // store unit string
-  /* for(i=0; i<PARAM_UNIT_LEN; ++i) { */
-  /*   *dst = pdesc->unit[i]; */
-  /*   ++dst; */
-  /* } */
   // store type
-  *dst = pdesc->type;
-  ++dst;
+  // pad for alignment
+  // store radix (pad for alignment)
+  dst = pickle_32((u32)(pdesc->type), dst);
   // store min
   dst = pickle_32(pdesc->min, dst);
   // store max
   dst = pickle_32(pdesc->max, dst);
+  // store radix (pad for alignment)
+  dst = pickle_32((u32)(pdesc->radix), dst);
+
   return dst;
 }
 
 const u8* pdesc_unpickle(ParamDesc* pdesc, const u8* src) {
   u32 val;
   u8 i;
+
+  print_dbg("\r\n unpickling param descriptor: ");
+
   // store label string
   for(i=0; i<PARAM_LABEL_LEN; ++i) {
     pdesc->label[i] = *src;
     ++src;
   }
 
-  // print_dbg("\r\n unpickled param label: ");
-  // print_dbg(pdesc->label);
-
-  /* // store unit string */
-  /* for(i=0; i<PARAM_UNIT_LEN; ++i) { */
-  /*   pdesc->unit[i] = *src; */
-  /*   ++src; */
-  /* } */
-
-  // print_dbg("\r\n unpickled param unit: ");
-  // print_dbg(pdesc->unit);
+  print_dbg(" , label: ");
+  print_dbg(pdesc->label);
 
   // store type
-  pdesc->type = *src;
-  ++src;
-
-  // print_dbg("\r\n unpickled param type: ");
-  // print_dbg_ulong((u32)(pdesc->type));
+  // pad for alignment
+  src = unpickle_32(src, &val);
+  pdesc->type = (u8)val;
+  print_dbg(" , type: ");
+  print_dbg_ulong(pdesc->type);
   
-  // store min
+  // min
   src = unpickle_32(src, &val);
   pdesc->min = val;
+  print_dbg(" , min: ");
+  print_dbg_hex(pdesc->min);
 
-  // print_dbg("\r\n unpickled param min: ");
-  // print_dbg_hex(pdesc->min);
-
-  // store max
+  // max
   src = unpickle_32(src, &val);
   pdesc->max = val;
+  print_dbg(" , max: ");
+  print_dbg_ulong(pdesc->max);
 
-  // print_dbg("\r\n unpickled param max: ");
-  // print_dbg_hex(pdesc->max);
+  // store radix
+  // padfor alignment
+  src = unpickle_32(src, &val);
+  pdesc->radix = (u8)val;
+
+  print_dbg(" , radix: ");
+  print_dbg_ulong(pdesc->radix);
 
   return src;
 }

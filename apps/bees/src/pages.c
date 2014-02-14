@@ -62,7 +62,7 @@ page_t pages[NUM_PAGES] = {
   },
   { .name = "PLAY",
     .select_fn = &select_play, // select function
-    .encSens = { 0, 0, ENC_THRESH_PAGESCROLL, ENC_THRESH_LISTSCROLL, }, // encoder sens 
+    .encSens = { 0, 0, 0, 0, }, // encoder sens 
   }
 };
 
@@ -96,8 +96,19 @@ static s8 lastPageIdx = 0;
     // TODO
   init_page_gathered();
   */
+
+
   pageIdx = ePageIns;
   set_page(pageIdx);
+
+  redraw_dsp();
+  redraw_outs();
+  redraw_ops();
+  redraw_presets();
+  redraw_scenes();
+  //... last
+  redraw_ins();
+
 }
 
 // de-init

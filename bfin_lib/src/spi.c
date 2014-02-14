@@ -1,3 +1,7 @@
+// aleph/common
+#include "param_common.h"
+
+// bfin_lib
 #include "bfin_core.h"
 #include "control.h"
 #include "gpio.h"
@@ -29,7 +33,7 @@ static void spi_set_param(u32 idx, ParamValue pv) {
 // deal with new data in the spi rx ringbuffer
 // return byte to load for next MISO
 u8 spi_process(u8 rx) {
-  static ParamValueCommon pval;
+  static ParamValueSwap pval;
   switch(byte) {
     /// caveman style case statement
   case eCom :
@@ -45,13 +49,21 @@ u8 spi_process(u8 rx) {
       byte = eNumParamsVal;
       return gModuleData->numParams; // load num params
       break;
+      /*
     case MSG_GET_PARAM_DESC_COM:
       byte = eParamDescIdx;
       break;
+      */
     case MSG_GET_MODULE_NAME_COM:
       byte = eModuleName0;
       return gModuleData->name[0];
       break;
+
+    case MSG_GET_MODULE_VERSION_COM:
+      byte = eModuleVersionMaj;
+      return MAJ;
+      break;
+
     case MSG_ENABLE_AUDIO:
       processAudio = 1;
       return processAudio;
@@ -106,8 +118,8 @@ u8 spi_process(u8 rx) {
     pval.asInt = gModuleData->paramData[idx].value;
     // byte-swap from BE on avr32
     return pval.asByte[3];
-      
     break;
+
   case eGetParamData0 :
     byte = eGetParamData1;
     // byte-swap from BE on avr32
@@ -135,6 +147,7 @@ u8 spi_process(u8 rx) {
     break;
 
     //---- get param descriptor
+#if 0
   case eParamDescIdx :
     byte = eParamDescLabel0;
     idx = rx;
@@ -290,6 +303,9 @@ u8 spi_process(u8 rx) {
     byte = eCom; // reset
     return 0; // dont care
     break;
+#endif
+
+
     //----- get module name
   case eModuleName0 :
     byte = eModuleName1;
@@ -387,6 +403,30 @@ u8 spi_process(u8 rx) {
     byte = eCom; // reset
     return 0;    // don't care
     break;
+
+    /// version
+  case eModuleVersionMaj :
+    byte = eModuleVersionMin;
+    return MIN; 
+    break;
+
+  case eModuleVersionMin :
+    byte = eModuleVersionRev0;
+    // patch (u16)
+    // === byteswap for BE on avr32
+    return REV >> 8;  
+    break;
+
+  case eModuleVersionRev0 :
+    byte = eModuleVersionRev1;
+    return REV & 0x00ff;
+    break;
+
+  case eModuleVersionRev1 :
+    byte = eCom; // reset
+    return 0;    // don't care
+    break;
+
   default:
     byte = eCom; // reset
     return 0;

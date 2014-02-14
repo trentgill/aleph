@@ -11,7 +11,6 @@
 #include "render.h"
 #include "scene.h"
 
-
 //------------------------------
 // static vars
 
@@ -31,7 +30,7 @@ static s8 cursor = 0;
 
 // kludge:
 // constant pointer to this page's selection
-static s16* const pageSelect = &(pages[ePageDsp].select);
+static s16* const pageSelect = &(pages[ePageScenes].select);
 
 //-------------------------
 //---- static funcs
@@ -68,6 +67,8 @@ static void render_line(s16 idx, u8 fg) {
   if( (idx >= 0) && (idx < files_get_scene_count()) ) {
     clearln();
     appendln((const char*)files_get_scene_name(idx));
+    // stick a null character at the end...
+    lineBuf[SCENE_NAME_LEN - 1] = '\0';
     font_string_region_clip(lineRegion, lineBuf, 2, 0, fg, 0);
   }
 }
@@ -153,7 +154,8 @@ void handle_key_0(s32 val) {
     render_update();
     region_fill(headRegion, 0x0);
 
-    files_store_scene_name(sceneData->desc.sceneName);
+
+    files_store_scene_name(sceneData->desc.sceneName, 1);
 
     print_dbg("\r\n stored scene, back to handler");
     
@@ -162,7 +164,8 @@ void handle_key_0(s32 val) {
     render_update();
 
     // refresh
-    redraw_lines();
+    //    redraw_lines();
+    redraw_scenes();
   }
   show_foot();
 }
@@ -171,29 +174,37 @@ void handle_key_0(s32 val) {
 void handle_key_1(s32 val) {
   if(val == 1) { return; }
   if(check_key(1)) {
-    region_fill(headRegion, 0x0);
-    font_string_region_clip(headRegion, "reading scene from card...", 0, 0, 0xa, 0);
-    headRegion->dirty = 1;
-    render_update();
-
+    notify("reading...");
     files_load_scene(*pageSelect);
-
-    region_fill(headRegion, 0x0);
-    font_string_region_clip(headRegion, "done reading.", 0, 0, 0xa, 0);
-    headRegion->dirty = 1;
-    render_update();
-
+    redraw_ins();
+    redraw_outs();
+    redraw_ops();
+    redraw_scenes();
+    notify("done reading.");
   }
   show_foot();
 }
 
 void handle_key_2(s32 val) {
+  // clear
+  if(val == 1) { return; }
+  if(check_key(2)) {
+    notify("clearing...");
+    net_clear_user_ops();
+    redraw_ins();
+    redraw_outs();
+    redraw_ops();
+    redraw_scenes();
+    notify("done clearing.");
+  }
+  show_foot();
 }
 
 void handle_key_3(s32 val) {
+  // alt
 }
 
-// scroll character value at cursor positoin in scene name
+// scroll character value at cursor position2 in scene name
 void handle_enc_0(s32 val) {
   if(val > 0) {
     edit_string_inc_char(sceneData->desc.sceneName, cursor);
@@ -342,6 +353,7 @@ void select_scenes(void) {
   app_event_handlers[ kEventSwitch1 ]	= &handle_key_1 ;
   app_event_handlers[ kEventSwitch2 ]	= &handle_key_2 ;
   app_event_handlers[ kEventSwitch3 ]	= &handle_key_3 ; 
+
 }
 
 
@@ -349,6 +361,11 @@ void select_scenes(void) {
 void redraw_scenes(void) {
   u8 i=0;
   u8 n = *pageSelect - 3;
+
+  // set scroll region
+  // FIXME: should be separate function i guess
+  render_set_scroll(&centerScroll);
+
   while(i<8) {
     render_line( n, 0xa );
     render_to_scroll_line(i, n == *pageSelect ? 1 : 0);

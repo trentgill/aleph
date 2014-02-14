@@ -12,16 +12,18 @@
 //////  uhh it is easiest to just put these here. sorry. suggestions welcome...
 
 // maximum allocated parameters, connections, and operators
+//// FIXME: need to fix malloc(),
+//  and also stream scene data to the card rather than having a huge serial blob.
 // max operator inputs
-#define NET_INS_MAX 128
+#define NET_INS_MAX 256
 // max operator outputs
-#define NET_OUTS_MAX 128
+#define NET_OUTS_MAX 256
 // max  operators
-#define NET_OPS_MAX 64
+#define NET_OPS_MAX 128
 // max DSP parameter inputs
 #define NET_PARAMS_MAX 256
 // max presets
-#define NET_PRESETS_MAX 16
+#define NET_PRESETS_MAX 32
 
 ///////////////////////////////////////////
 
@@ -61,7 +63,7 @@ extern void net_activate(s16 inIdx, const io_t val, void* srcOp);
 // get current count of operators
 extern u16 net_num_ops(void);
 
-// get current count of inputs
+// get current count of inputs (including dsp parameters!)
 extern u16 net_num_ins(void);
 
 // get current count of outputs
@@ -168,7 +170,8 @@ extern void net_retrigger_inputs(void);
 extern u32 net_gather(s32 iIdx, u32(*outs)[NET_OUTS_MAX]);
 
 // query the blackfin for parameter list and populate pnodes
-extern u8 net_report_params(void);
+/// this is now populated from offline descriptor file
+// extern u8 net_report_params(void);
 
 // pickle the network!
 // return incremented pointer to dst
@@ -178,6 +181,16 @@ extern u8* net_pickle(u8* dst);
 // return incremented pointer to src
 extern u8* net_unpickle(const u8* src);
 
+// clear ops and i/o
+extern void net_clear_user_ops(void);
+
+// disconnect from parameters
+extern void net_disconnect_params(void);
+
+// insert a split after an output node
+// return out11 of split if original out was unconnected,
+// otherwise connect out1 of split to old target and return out2
+extern s16 net_split_out(s16 outIdx);
 
 /// test/dbg
 void net_print(void);

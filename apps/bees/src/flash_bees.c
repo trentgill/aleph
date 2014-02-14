@@ -21,6 +21,7 @@ static s32* scalerBuf;
 // max size of data in single scaler file
 static const u32 scalerMaxValues = 1024;
 
+
 // read default scene data to global buffer
 void flash_read_scene(void) { 
   memcpy((void*)sceneData, flash_app_data(), sizeof(sceneData_t)); 
@@ -32,8 +33,10 @@ void flash_write_scene(void) {
   scene_write_buf();
   //  print_dbg("\r\n writing scene data to address: 0x");
   
+#ifdef SCENE_FLASH
   flashc_memcpy( &( ((beesFlashData*)(flash_app_data()))->sceneBytes),
 		 (void*)sceneData, sizeof(sceneData_t), true);
+#endif
 }
 
 // initialize nonvolatile scaler data

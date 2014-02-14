@@ -35,7 +35,6 @@ CFLAGS += -Wall -mcpu=$(CPU) $(INC)
 # CFLAGS += -02
 CFLAGS += -03
 
-
 LDFLAGS += -mcpu=$(CPU)
 # LDRFLAGS += --initcode $(bfin_lib_objdir)init.o
 LDRFLAGS += --bits 16 --dma 8
@@ -47,6 +46,7 @@ bfin_lib_target: $(patsubst %.o, $(bfin_lib_objdir)%.o, $(bfin_lib_obj))
 
 $(bfin_lib_objdir)%.o : # $(bfin_lib_srcdir)%.c
 	$(CC) $(CFLAGS) $(INC) -c \
+	-D MAJ=$(maj) -D MIN=$(min) -D REV=$(rev) \
 	$(patsubst $(bfin_lib_objdir)%.o, $(bfin_lib_srcdir)%.c, $@) \
 	-o $@
 

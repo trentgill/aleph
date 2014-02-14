@@ -33,4 +33,13 @@ extern void lcprng_set_x(lcprng* o, s32 v);
 // compute next
 extern s32 lcprng_next(lcprng* o);
 
+// macro-ized
+#define lcprng_reset( l, seed ) \
+  (l).a = 0x19660d;						\
+     (l).c = 0x3c6ef35f;					\
+     (l).x = (seed);		
+
+#define lcprng_calc_frame( l ) \
+  (l).x = (l).x * (l).c + (l).a;
+
 #endif

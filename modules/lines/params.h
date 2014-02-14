@@ -1,6 +1,8 @@
 #ifndef _ALEPH_LINES_PARAMS_H_
 #define _ALEPH_LINES_PARAMS_H_
 
+#include "param_common.h"
+
 #define PARAM_HZ_MIN OSC_FREQ_MIN
 #define PARAM_HZ_MAX OSC_FREQ_MIN
 #define PARAM_HZ_DEFAULT (OSC_FREQ_MIN * 16)
@@ -15,13 +17,24 @@
 #define PARAM_RATE_MAX 0x80000 // 8
 #define PARAM_RATE_RADIX 3
 
+
+
 /* #define RATIO_MIN 0x4000     // 1/4 */
 /* #define RATIO_MAX 0x40000    // 4 */
 /* #define RATIO_RADIX 3 */
 
-#define SMOOTH_FREQ_MIN 0x2000 // 1/8
-#define SMOOTH_FREQ_MAX 0x400000 // 64
+#define SMOOTH_FREQ_MIN 0x2000 // 1/8s
+#define SMOOTH_FREQ_MAX 0x400000 // 64s
 #define SMOOTH_FREQ_RADIX 7
+
+/// FIXME: 
+// right now, "fade" is the increment rate of a linear ramp.
+// not very intuitve
+#define PARAM_FADE_MIN 0x20000    // ~3.41s.
+#define PARAM_FADE_MAX 0x20000000 // < 1ms  
+#define PARAM_FADE_RADIX 16
+// fixme: what a stupid hack
+#define PARAM_FADE_ADD 0x20000
 
 // svf cutoff
 #define PARAM_CUT_MAX     0x7fffffff
@@ -37,11 +50,49 @@
 #define PARAM_AMP_12 (FRACT32_MAX >> 2)
 
 // max time in seconds, 16.16
+// 256 seconds, minus 1 bit
+// #define PARAM_SECONDS_MAX 0xffffff
+// #define PARAM_SECONDS_RADIX 9
+
+// max time in seconds, 16.16
+//// revert until shit gets figured out
 #define PARAM_SECONDS_MAX 0x003c0000
 #define PARAM_SECONDS_RADIX 7
 
+/// smoother default
+// about 1ms?
+#define PARAM_SLEW_DEFAULT  0x76000000
+
 // enumerate parameters
 enum params {
+
+  // xfade time
+  eParamFade0,
+  eParamFade1,
+
+  /// smoothers have to be processed first!
+  eParamCut0Slew,
+  eParamRq0Slew,
+  eParamLow0Slew,
+  eParamHigh0Slew,
+  eParamBand0Slew,
+  eParamNotch0Slew,
+
+  eParamCut1Slew,
+  eParamRq1Slew,
+  eParamLow1Slew,
+  eParamHigh1Slew,
+  eParamBand1Slew,
+  eParamNotch1Slew,
+
+  eParamDry0Slew,
+  eParamWet0Slew,
+
+  eParamDry1Slew,
+  eParamWet1Slew,
+
+  // smoothing parameter for ALL mix values!
+  eParamMixSlew,
 
   // delay input mix
   eParam_adc0_del0,		
@@ -87,6 +138,18 @@ enum params {
   eParam_adc3_dac2,		
   eParam_adc3_dac3,		
 
+    // cv
+  eParam_cvSlew3,
+  eParam_cvSlew2,
+  eParam_cvSlew1,
+  eParam_cvSlew0,
+
+  eParam_cvVal3,
+  eParam_cvVal2,
+  eParam_cvVal1,
+  eParam_cvVal0,
+
+
   // line 1
   eParam_freq1,		
   eParam_rq1,			
@@ -131,7 +194,7 @@ enum params {
 };  
 
 
-extern void fill_param_desc(void);
+extern void fill_param_desc(ParamDesc* desc);
 
 #endif // header guard 
 // EOF

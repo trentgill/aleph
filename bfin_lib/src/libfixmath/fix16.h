@@ -74,26 +74,27 @@ static inline fix16_t fix16_from_dbl(double a)
     return (fix16_t)temp;
 }
 
-/* Subtraction and addition with (optional) overflow detection. */
-#ifdef FIXMATH_NO_OVERFLOW
+/* /\* Subtraction and addition with (optional) overflow detection. *\/ */
+/* #ifdef FIXMATH_NO_OVERFLOW */
 
-static inline fix16_t fix16_add(fix16_t inArg0, fix16_t inArg1) { return (inArg0 + inArg1); }
-static inline fix16_t fix16_sub(fix16_t inArg0, fix16_t inArg1) { return (inArg0 - inArg1); }
+/* static inline fix16_t fix16_add(fix16_t inArg0, fix16_t inArg1) { return (inArg0 + inArg1); } */
+/* static inline fix16_t fix16_sub(fix16_t inArg0, fix16_t inArg1) { return (inArg0 - inArg1); } */
 
-#else
+/* #else */
 
-extern fix16_t fix16_add(fix16_t a, fix16_t b) FIXMATH_FUNC_ATTRS;
-extern fix16_t fix16_sub(fix16_t a, fix16_t b) FIXMATH_FUNC_ATTRS;
+/* extern fix16_t fix16_add(fix16_t a, fix16_t b) FIXMATH_FUNC_ATTRS; */
+/* extern fix16_t fix16_sub(fix16_t a, fix16_t b) FIXMATH_FUNC_ATTRS; */
 
-/* Saturating arithmetic */
-extern fix16_t fix16_sadd(fix16_t a, fix16_t b) FIXMATH_FUNC_ATTRS;
-extern fix16_t fix16_ssub(fix16_t a, fix16_t b) FIXMATH_FUNC_ATTRS;
+/* /\* Saturating arithmetic *\/ */
+/* extern fix16_t fix16_sadd(fix16_t a, fix16_t b) FIXMATH_FUNC_ATTRS; */
+/* extern fix16_t fix16_ssub(fix16_t a, fix16_t b) FIXMATH_FUNC_ATTRS; */
 
-#endif
+/* #endif */
 
 /*! Multiplies the two given fix16_t's and returns the result.
 */
-extern fix16_t fix16_mul(fix16_t inArg0, fix16_t inArg1) FIXMATH_FUNC_ATTRS;
+//extern fix16_t fix16_mul(fix16_t inArg0, fix16_t inArg1) FIXMATH_FUNC_ATTRS;
+extern inline fix16_t fix16_mul(fix16_t inArg0, fix16_t inArg1);
 
 /*! Divides the first given fix16_t by the second and returns the result.
 */
@@ -102,7 +103,9 @@ extern fix16_t fix16_div(fix16_t inArg0, fix16_t inArg1) FIXMATH_FUNC_ATTRS;
 #ifndef FIXMATH_NO_OVERFLOW
 /*! Performs a saturated multiplication (overflow-protected) of the two given fix16_t's and returns the result.
 */
-extern fix16_t fix16_smul(fix16_t inArg0, fix16_t inArg1) FIXMATH_FUNC_ATTRS;
+// extern fix16_t fix16_smul(fix16_t inArg0, fix16_t inArg1) FIXMATH_FUNC_ATTRS;
+// blackfin is always saturating
+#define fix16_smul(a, b) fix16_mul(a, b)
 
 /*! Performs a saturated division (overflow-protected) of the first fix16_t by the second and returns the result.
 */

@@ -27,22 +27,35 @@ static scroll centerScroll;
 static s16* const pageSelect = &(pages[ePageOps].select);
 
 // const array of user-creatable operator types
-#define NUM_USER_OP_TYPES 14
+#define NUM_USER_OP_TYPES 27
 static const op_id_t userOpTypes[NUM_USER_OP_TYPES] = {
   eOpAccum,
   eOpAdd,
+  eOpBignum,
+  eOpBits,
+  eOpDelay,
   eOpDiv,
   eOpGate,
+  eOpMonomeGridRaw, // "grid"
+  eOpHistory,
+  eOpIs,
+  eOpLife,
+  eOpList2,
   eOpList8,
+  eOpLogic,
   eOpMetro,
   eOpMidiNote,
-  eOpMonomeGridRaw,
+  eOpMod,
   eOpMul,
   eOpRandom,
-  eOpSplit,
+  eOpRoute,
+  eOpScreen,
   eOpSub,
   eOpTog,
+  eOpThresh,
   eOpTimer,
+  eOpSplit, // "Y"
+  eOpSplit4 // "Y4"
 };
 
 // current selected new operator type
@@ -190,16 +203,23 @@ static void show_foot2(void) {
     fill = 0x5;
   }
   region_fill(footRegion[2], fill);
-  font_string_region_clip(footRegion[2], "CREATE", 0, 0, 0xf, fill);
+  if(altMode) {
+    font_string_region_clip(footRegion[2], "DELETE", 0, 0, 0xf, fill);
+  } else {
+    font_string_region_clip(footRegion[2], "CREATE", 0, 0, 0xf, fill);
+  }
   
 }
 
 static void show_foot3(void) {
   u8 fill = 0;
-  //  u8 fore = 0xf;
-  //..???
+  u8 fore = 0xf;
+  if(altMode) {
+    fill = 0xf;
+    fore = 0;
+  }
   region_fill(footRegion[3], fill);
-  //font_string_region_clip(footRegion[3], "ALT", 0, 0, fore, fill);
+  font_string_region_clip(footRegion[3], "ALT", 0, 0, fore, fill);
 }
 
 static void show_foot(void) {
@@ -221,6 +241,8 @@ void handle_key_0(s32 val) {
     print_dbg_ulong( net_op_in_idx(*pageSelect, 0));
     // go to inputs page
     set_page(ePageIns);
+    // reset keypress 
+    keyPressed = 255;
     redraw_ins();
   }
   show_foot();
@@ -242,8 +264,9 @@ void handle_key_1(s32 val) {
 
     // go to outputs page
     set_page(ePageOuts);
+    // reset keypress
+    keyPressed = 255;
     print_dbg("\r\n performed select-page");
-    // 
     redraw_outs();
     print_dbg("\r\n performed redraw");
   }
@@ -253,18 +276,31 @@ void handle_key_1(s32 val) {
 void handle_key_2(s32 val) {
   if(val == 0) { return; }
   if(check_key(2)) { 
-    // create new operator of selected type
-    net_add_op(userOpTypes[newOpType]);
-    // change selection to last op
-    *pageSelect = net_num_ops() - 1;
-    // redraw...
+    if(altMode) {
+      // delete last created operator
+      net_pop_op();
+    } else {
+      // create new operator of selected type
+      net_add_op(userOpTypes[newOpType]);
+      // change selection to last op
+      *pageSelect = net_num_ops() - 1;
+
+    }
+    redraw_ins();
+    redraw_outs();
     redraw_ops();
   }
   show_foot();
 }
 
 void handle_key_3(s32 val) {
-  // delete? subpage?
+  // alt mode
+  if(val > 0) {
+    altMode = 1;
+  } else {
+    altMode = 0;
+  }
+  show_foot();
 }
 
 void handle_enc_0(s32 val) {
@@ -320,8 +356,8 @@ void init_page_ops(void) {
   //// need to actually set the scroll region at least temporarily
   render_set_scroll(&centerScroll);
   while(i<5) {
-    print_dbg("\r\n init ops page, line ");
-    print_dbg_ulong(i);
+    /* print_dbg("\r\n init ops page, line "); */
+    /* print_dbg_ulong(i); */
     render_line(i);
     render_to_scroll_line(n, i == 0 ? 1 : 0);
     ++n;
@@ -347,12 +383,19 @@ void select_ops(void) {
   app_event_handlers[ kEventSwitch1 ]	= &handle_key_1 ;
   app_event_handlers[ kEventSwitch2 ]	= &handle_key_2 ;
   app_event_handlers[ kEventSwitch3 ]	= &handle_key_3 ;
+
 }
 
 // redraw all lines, based on current selection
 void redraw_ops(void) {
   u8 i=0;
   u8 n = *pageSelect - 3;
+
+
+  // set scroll region
+  // FIXME: should be separate function i guess
+  render_set_scroll(&centerScroll);
+
   while(i<8) {
     render_line( n );
     render_to_scroll_line(i, n == *pageSelect  ? 1 : 0);

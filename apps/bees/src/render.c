@@ -2,7 +2,7 @@
    bees
    aleph
    
-   render functions common to pages.
+   render functions common to all the menu pages.
 
  */
 
@@ -35,6 +35,7 @@
 region* headRegion = NULL;
 region* footRegion[4] = { NULL, NULL, NULL, NULL };
 region* lineRegion = NULL;
+region* selectRegion = NULL;
 
 //------------------------
 //---- static vars
@@ -144,11 +145,17 @@ void render_init(void) {
   footRegion[3] = &(footRegion_pr[3]);
   //  selectRegion = &selectRegion_pr;
   lineRegion = &lineRegion_pr;
-
 }
 
 // render text to scrolling buffer during boot procedure
 extern void render_boot(const char* str) {
+  int i;
+  u8* p = bootScroll.reg->data;
+  // first kind of dim the old stuff in the scroll region
+  for(i=0; i<bootScroll.reg->len; i++) {
+    if(*p > 0x4) { *p = 0x4; }
+    p++;
+  }
   scroll_string_front(&bootScroll, (char*)str);
   region_update(bootScroll.reg);
 }
@@ -482,6 +489,8 @@ void render_edit_string(region* reg, char* str, u8 len, u8 cursor) {
     }
   }
   reg->dirty = 1;
+  print_dbg("\r\n edited string: ");
+  print_dbg(str);
 }
 
 
@@ -490,4 +499,12 @@ void draw_preset_name(void) {
   font_string_region_clip(headRegion, "                  ", 64, 0, 0, 0);
   font_string_region_clip(headRegion, preset_name((u8)preset_get_select()), 64, 0, 0x5, 0);
   headRegion->dirty = 1;
+}
+
+// draw to the head region
+void notify(const char* str) {
+    region_fill(headRegion, 0x0);
+    font_string_region_clip(headRegion, str, 0, 0, 0xa, 0);
+    headRegion->dirty = 1;
+    render_update();
 }

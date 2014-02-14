@@ -1,0 +1,195 @@
+----------------
+bees	0.5.0  ! breaks module compatibility !
+- move param descriptors offline, associated .dsc with .ldr
+- fix hang when attempting to delete system ops	  
+- eliminate class-specific increment functions for operators
+
+----------------
+lines	0.2.0
+- move param descriptors offline, associated .dsc with .ldr
+
+----------------
+waves	0.3.0
+- move param descriptors offline, associated .dsc with .ldr
+
+----------------
+bees	0.4.3
+- fix preset-node-indexing bug on op creation / deletion
+
+----------------
+lines	0.1.2
+- fade init is more proper
+- revert to 1min times (still working on it)
+
+----------------
+bees	0.4.2 
+- new ops: delay, route, split4
+
+----------------
+waves	0.2.1
+- enable filter smoothing parameters
+- cleanup some intial param values
+
+----------------
+lines	0.1.1
+- enable crossfade parameters (linear, only affecting read pos / delay)
+- enable filter smoothing parameters	
+- cleanup some intial param values
+- fix crash bug when delay > loop
+
+----------------
+bees	0.4.1 
+- hopefully fix scroll behavoir on scenes/dsp pages
+- minor gfx/UI tweaks (including glitched scene names)
+
+----------------
+bees	0.4.0  ! breaks scene compatbility !
+- presets now store all inputs, play flag
+- max count of operators / ins / presets increased
+- op ADC renamed CV-IN
+- op CV-IN enable input no longer acts like a toggle
+- op CV-IN mode input added, set to one for trigger input which outputs only on transition
+- new op: HISTORY
+- op LIFE fixed, outputs reduced
+- op GRID added count output
+
+----------------
+bees	0.3.8
+- add new ops: BITS, IS, LIFE, LIST2, LOGIC, MOD
+- fix some refresh bugs
+
+----------------
+bees	0.3.7
+- fixed monome timer set in bees!
+
+----------------
+bees	0.3.6
+- fix gnarly init-order bug that was killing UHC
+
+----------------
+bees	0.3.5
+- scene filename / extension bugfix
+
+----------------
+bees	0.3.4
+- move default scene to sdcard
+- major bugfix in net activation / play mode
+- play mode defaults to 1 for params, 0 for op inputs
+
+----------------
+bees	0.3.3
+- major bugfix when storing/recalling default scene after clean boot
+- .scn extension applied directly to scene name
+
+----------------
+bees	0.3.2
+- enable SPLIT command and change operator label ('Y')
+- headless bees runs and almost loads a scene
+- app init cleanup
+
+
+==================================
+140118
+
+----------------
+bees	0.3.1
+
+- forbid pathological settings for op_accum and fix wrap bug
+- slight cleanup in rendering
+- disconnect params on module switch instead of clearing scene
+- clear scene with button on scenes page
+- store reported module version in scene data (still using filename though)
+- add "headless bees" (compiles but needs work)
+
+----------------
+bees	0.3.0    ! breaks scene compatbility !
+
+- include param radix in scene data
+- include play vis. flag in scene data
+- blackfin reports version (sort of)
+- scene stores bees + module versions (sort of) 
+- general scene serialization stability
+
+--------------------
+
+waves 0.2.0   ! breaks scene compatbility !
+
+- added fmDel parameters (not functional) 
+- added version reporting
+
+
+lines 0.1.0
+
+- added version reporting
+
+----------------
+bees	0.2.3
+
+- release build now actually supresses debug prints
+- fix LDR boot problems
+- fix onscreen boot messages 
+
+===========================================
+140115
+
+----------------
+bees	0.2.2
+
+- fix 256 detection bug
+- add 40h protocold
+- fix overflow in op_enc and ban some pathological settings
+
+----------------
+bees	0.2.1
+
+- fix crash when selected 1st operator's inputs from ops page
+
+============================================
+140114b
+
+----------------
+bees	0.2.0
+
+- add 2nd sensitivity knob on ins page
+- add preset-recall notify to play page
+- correct enc0, enc1 scaling on play page
+- preset names stored in scene
+- 'zero' command now 'zero/max'
+- add 'thresh' operator
+
+
+----------------
+lines	0.0.2
+- fix param descriptors so doesn't crash on scene load.
+
+
+============================================
+140114
+
+----------------
+bees	0.1.0
+- added DELETE to ops page; removes most recent op.
+- fix saturation in table-based param scalers.
+- cleanup
+
+
+---------------- 
+waves	0.0.1
+- more attempts at bandlimiting. works a little but not will because operating on linear frequency.
+- delay codec reset at startup until interrupts enabled. catches some startup bugs.
+
+----------------
+lines	0.0.1
+- delay codec reset at startup until interrupts enabled. catches some startup bugs.
+
+
+============================================
+140113
+
+bees 	0.0.0
+
+lines	0.0.0
+
+waves	0.0.0
+
+first public release

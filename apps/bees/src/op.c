@@ -113,6 +113,71 @@ const op_desc_t op_registry[numOpClasses] = {
     .size = sizeof(op_list8_t),
     .init = &op_list8_init,
     .deinit = NULL    
+  }, {
+    .name = "THRESH",
+    .size = sizeof(op_thresh_t),
+    .init = &op_thresh_init,
+    .deinit = NULL    
+  }, {
+    .name = "MOD",
+    .size = sizeof(op_mod_t),
+    .init = &op_mod_init,
+    .deinit = NULL    
+  }, {
+    .name = "BITS",
+    .size = sizeof(op_bits_t),
+    .init = &op_bits_init,
+    .deinit = NULL    
+  }, {
+    .name = "IS",
+    .size = sizeof(op_is_t),
+    .init = &op_is_init,
+    .deinit = NULL    
+  }, {
+    .name = "LOGIC",
+    .size = sizeof(op_logic_t),
+    .init = &op_logic_init,
+    .deinit = NULL    
+  }, {
+    .name = "LIST2",
+    .size = sizeof(op_list2_t),
+    .init = &op_list2_init,
+    .deinit = NULL    
+  }, {
+    .name = "LIFE",
+    .size = sizeof(op_life_t),
+    .init = &op_life_init,
+    .deinit = NULL    
+  }, {
+    .name = "HISTORY",
+    .size = sizeof(op_history_t),
+    .init = &op_history_init,
+    .deinit = NULL    
+  }, {
+    .name = "BIGNUM",
+    .size = sizeof(op_bignum_t),
+    .init = &op_bignum_init,
+    .deinit = &op_bignum_deinit
+    }, {
+    .name = "SCREEN",
+    .size = sizeof(op_screen_t),
+    .init = &op_screen_init,
+    .deinit = &op_screen_deinit
+  }, {
+    .name = "SPLIT4",
+    .size = sizeof(op_split4_t),
+    .init = &op_split4_init,
+    .deinit = NULL
+  }, {
+    .name = "DELAY",
+    .size = sizeof(op_delay_t),
+    .init = &op_delay_init,
+    .deinit = NULL
+  }, {
+    .name = "ROUTE",
+    .size = sizeof(op_route_t),
+    .init = &op_route_init,
+    .deinit = NULL
   }
 
 };
@@ -205,3 +270,12 @@ void op_set_in_val(op_t* op, s16 idx, io_t val) {
 /* const u8* op_unpickle(op_t* op, const u8* src) { */
 /*     return (*(op->unpickle))(op, src); */
 /* } */
+
+
+
+// increment input valueo
+void op_inc_in_val(op_t* op, const s16 idx, const io_t inc) {
+  io_t val;
+  val = op_sadd( *(op->in_val[idx]), inc); 
+  (*(op->in_fn[idx]))(op, val);  
+}

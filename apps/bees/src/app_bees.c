@@ -21,6 +21,7 @@
 #include "screen.h"
 
 // bees
+#include "app_bees.h"
 #include "app_timers.h"
 #include "files.h"
 #include "flash_bees.h"
@@ -32,16 +33,32 @@
 #include "render.h"
 #include "scene.h"
 
-static char versionString[8] = VERSIONSTRING;
+//-------------------------------------------
+//-- extern vars (here)
+
+// maj = 1byte, min = 1byte, rev = 2byte
+//const u32 beesVersion = (MAJ << 24) | (MIN << 16) | (REV << 8);
+const AppVersion beesVersion = { .min = MIN , .maj = MAJ , .rev = REV };
+
+//--------------------------------
+//--- static vars
+static char versionString[12] = VERSIONSTRING;
+
+#define DEFAULT_LDR "aleph-waves.ldr"
+#define DEFAULT_DSC "aleph-waves.dsc"
 
 // this is called during hardware initialization.
 // allocate memory.
 void app_init(void) {
-  print_dbg("\r\n net_init... ");
-  net_init();
 
   print_dbg("\r\n preset_init...");  
   presets_init();
+
+  // this must come after preset init!
+  // uses preset data when adding system ops...
+  print_dbg("\r\n net_init... ");
+  net_init();
+
 
   print_dbg("\r\n scene_init...");
   scene_init();
@@ -53,14 +70,6 @@ void app_init(void) {
 
   print_dbg("\r\n render_init...");
   render_init();
-
-  /// move these after scene load,
-  // so that initial graphics reflect scene data
-  /* print_dbg("\r\n pages_init..."); */
-  /* pages_init(); */
-
-  /* print_dbg("\r\n play_init..."); */
-  /* play_init(); */
 
   // initialize flash-management buffers
   print_dbg("\r\n flash_bees_init...");
@@ -74,7 +83,6 @@ u8 app_launch(u8 firstrun) {
   print_dbg_ulong(firstrun);
 
   //  net_print();
-
   
   render_boot("BEES");
   render_boot(versionString);
@@ -90,58 +98,66 @@ u8 app_launch(u8 firstrun) {
     flash_init_scaler_data();
 
     print_dbg("\r\n first run, try and load default DSP");
-    render_boot("launching default DSP...");
+    render_boot("launching default DSP");
 
-    files_load_dsp_name("aleph-waves.ldr");
+    //// startup using default DSP name
+    files_load_dsp_name(DEFAULT_LDR);
     
     render_boot("waiting for DSP init...");
+    //    print_dbg("\r\n DSP booted, waiting to query params...");
+    //    print_dbg(" requesting param report");
     bfin_wait_ready();
 
     //    print_dbg(" requesting param report...");
-    render_boot("requesting DSP params");
-    net_report_params();
+    //    render_boot("requesting DSP parameterss");
+    //    net_report_params();
 
     //    print_dbg("\r\n enable DSP audio...");
-        render_boot("enabling audio");
+    render_boot("enabling audio");
     bfin_enable();
 
-    render_boot("writing default dsp to flash...");
-    files_store_default_dsp_name("aleph-waves.ldr");
+    //    render_boot("writing default dsp to flash...");
+    //    files_store_default_dsp_name("aleph-waves.ldr");
     
   } else {
 
     app_pause();
 
-    print_dbg("\r\n booting default ldr from flash... ");
-    render_boot("booting DSP from flash");
-    flash_read_ldr();
+    //    print_dbg("\r\n booting default ldr from flash... ");
+    //    render_boot("booting DSP from flash");
+    //    flash_read_ldr();
 
-    bfin_load_buf();    
-    print_dbg("\r\n DSP booted, waiting to query params...");
-    render_boot("waiting for DSP init...");
+    //    bfin_load_buf();    
+    //    print_dbg("\r\n DSP booted, waiting to query params...");
+    //    render_boot("waiting for DSP init...");
 
     /// blackfin should clear ready pin ASAP on boot.
     /// but give it a moment to accomplish that.
     delay_ms(2);
     
-    bfin_wait_ready();
-    print_dbg(" requesting param report...");
-    render_boot("requesting DSP params");
-    net_report_params();
+    //    bfin_wait_ready();
+    //    print_dbg(" requesting param report...");
+    //    render_boot("requesting DSP params");
+    //    net_report_params();
 
-    print_dbg("\r\n enable DSP audio...");
-    render_boot("enabling audio");
-    bfin_enable();
+    //    print_dbg("\r\n enable DSP audio...");
+    //    render_boot("enabling audio");
+    //    bfin_enable();
     
     print_dbg("\r\n reading default scene... ");
-    render_boot("reading default scene");
+    render_boot("reading  scene from flash");
+
+    /// this also attempts to load associated .ldr
     scene_read_default();
+
+    delay_ms(2); 
 
     app_resume();
     
    }
 
   // init pages (fill graphics buffers)
+  render_boot("initializing gfx");
   print_dbg("\r\n pages_init...");
   pages_init();
 
@@ -150,18 +166,18 @@ u8 app_launch(u8 firstrun) {
 
   // enable timers
   print_dbg("\r\n enable app timers...");
-  render_boot("enabling app timers...");
+  render_boot("enabling app timers");
   init_app_timers();
 
   // pull up power control pin, enabling soft-powerdown
   gpio_set_gpio_pin(POWER_CTL_PIN);
 
   // assign app event handlers
-  print_dbg("\r\n assigning handlers ");
-  render_boot("assigning UI handlers...");
+  print_dbg("\r\n assigning handlers... ");
+  render_boot("assigning UI handlers");
   assign_bees_event_handlers();
 
-  // update page rendering and handlers
+  // update page rendering and handlers...
   pages_reselect();
 
   // start in play mode 

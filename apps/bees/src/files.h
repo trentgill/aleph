@@ -44,10 +44,12 @@ extern u8 files_load_scene(u8 idx);
 // load scene by filename
 // return 1 on success, 0 on failure
 extern u8 files_load_scene_name(const char* name);
+extern u8 files_load_scene_path(const char* name);
+
 // store scene by index
 extern void files_store_scene(u8 idx);
 // store scene by filename
-extern void files_store_scene_name(const char* name);
+extern void files_store_scene_name(const char* name, u8 ext);
 
 
 //----- scalers
@@ -58,5 +60,9 @@ extern u8 files_get_scaler_count(void);
 // load scaler by filename
 // return 1 on success, 0 on failure
 extern u8 files_load_scaler_name(const char* name, s32* dst, u32 dstSize);
+
+//----- param descriptors
+// search for named .dsc file and load into network param desc memory
+extern u8 files_load_desc(const char* name);
 
 #endif // header guard 
