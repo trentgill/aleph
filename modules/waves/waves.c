@@ -100,7 +100,7 @@ static void calc_frame(void) {
     // TODO: cutoff mod
     // calculate oscillator output
     complex_osc_next( osc[i], oscOutTmp );
-    oscOut[i] = shr_fr1x32( oscOutTmp, 2);  
+    oscOut[i] = oscOutTmp;
   
     // process SVF param integrators
     slew_exp_calc_frame( cutSlew[i] );
@@ -116,17 +116,25 @@ static void calc_frame(void) {
     slew_exp_calc_frame( ampSlew[i] );
     voiceAmp[i] = (ampSlew[i]).y;
     // apply wet/dry/amp
+    //// TEST:
+    /* voiceOut[i] = mult_fr1x32x32( 0x7fffffff, */
+    /* 				  add_fr1x32(mult_fr1x32( oscOut[i], 0x7fff ), */
+    /* 					     mult_fr1x32( svfOut[i], 0x7fff ) */
+    /* 					     ) */
+    /* 				  ); */
+    
     voiceOut[i] = mult_fr1x32x32( voiceAmp[i],
-				  add_fr1x32(mult_fr1x32x32( oscOut[i], fDry[i] ),
-					     mult_fr1x32x32( svfOut[i], fWet[i] )
+				  add_fr1x32(mult_fr1x32( trunc_fr1x32(oscOut[i]), fDry[i] ),
+					     mult_fr1x32( trunc_fr1x32(svfOut[i]), fWet[i] )
 					     )
 				  );
+    
 
   }
   // mix outputs
   out[0] = out[1] = out[2] = out[3] = 0;
   mix_voice();
-  mix_adc();	
+  //  mix_adc();	
 
 #else
   /* wavesVoice* v; */

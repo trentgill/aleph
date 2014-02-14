@@ -114,11 +114,11 @@ void module_set_param(u32 idx, ParamValue v) {
     break;
 
   case eParam_fdry0 :
-    fDry[0] = v;
+    fDry[0] = trunc_fr1x32( v );
     break;
 
   case eParam_fdry1 :
-    fDry[1] = v;
+    fDry[1] = trunc_fr1x32( v );
     break;
 
     ///// slews
@@ -202,81 +202,81 @@ void module_set_param(u32 idx, ParamValue v) {
 
    // i/o mix:
   case eParam_adc0_dac0 :
-    mix_adc_dac[0][0] = v;
-    //    ioAmp0 = v;
+    mix_adc_dac[0][0] = trunc_fr1x32( v );
+    //    ioAmp0 = trunc_fr1x32( v );
     break;
   case eParam_adc0_dac1 :
-    mix_adc_dac[0][1] = v;
+    mix_adc_dac[0][1] = trunc_fr1x32( v );
     break;
   case eParam_adc0_dac2 :
-    mix_adc_dac[0][2] = v;
+    mix_adc_dac[0][2] = trunc_fr1x32( v );
     break;
   case eParam_adc0_dac3 :
-    mix_adc_dac[0][3] = v;
+    mix_adc_dac[0][3] = trunc_fr1x32( v );
     break;
   case eParam_adc1_dac0 :
-    mix_adc_dac[1][0] = v;
+    mix_adc_dac[1][0] = trunc_fr1x32( v );
     break;
   case eParam_adc1_dac1 :
-    mix_adc_dac[1][1] = v;
-    //    ioAmp1 = v;
+    mix_adc_dac[1][1] = trunc_fr1x32( v );
+    //    ioAmp1 = trunc_fr1x32( v );
     break;
   case eParam_adc1_dac2 :
-    mix_adc_dac[1][2] = v;
+    mix_adc_dac[1][2] = trunc_fr1x32( v );
     break;
   case eParam_adc1_dac3 :
-    mix_adc_dac[1][3] = v;
+    mix_adc_dac[1][3] = trunc_fr1x32( v );
     break;
   case eParam_adc2_dac0 :
-    mix_adc_dac[2][0] = v;
+    mix_adc_dac[2][0] = trunc_fr1x32( v );
     break;
   case eParam_adc2_dac1 :
-    mix_adc_dac[2][1] = v;
+    mix_adc_dac[2][1] = trunc_fr1x32( v );
     break;
   case eParam_adc2_dac2 :
-    mix_adc_dac[2][2] = v;
-    //    ioAmp2 = v;
+    mix_adc_dac[2][2] = trunc_fr1x32( v );
+    //    ioAmp2 = trunc_fr1x32( v );
     break;
   case eParam_adc2_dac3 :
-    mix_adc_dac[2][3] = v;
+    mix_adc_dac[2][3] = trunc_fr1x32( v );
     break;
   case eParam_adc3_dac0 :
-    mix_adc_dac[3][0] = v;
+    mix_adc_dac[3][0] = trunc_fr1x32( v );
     break;
   case eParam_adc3_dac1 :
-    mix_adc_dac[3][1] = v;
+    mix_adc_dac[3][1] = trunc_fr1x32( v );
     break;
   case eParam_adc3_dac2 :
-    mix_adc_dac[3][2] = v;
+    mix_adc_dac[3][2] = trunc_fr1x32( v );
     break;
   case eParam_adc3_dac3 :
-    mix_adc_dac[3][3] = v;
-    //    ioAmp3 = v;
+    mix_adc_dac[3][3] = trunc_fr1x32( v );
+    //    ioAmp3 = trunc_fr1x32( v );
     break;
     // osc mix:
   case eParam_osc0_dac0 :
-    mix_osc_dac[0][0] = v;
+    mix_osc_dac[0][0] = trunc_fr1x32( v );
     break;
   case eParam_osc0_dac1 :
-    mix_osc_dac[0][1] = v;
+    mix_osc_dac[0][1] = trunc_fr1x32( v );
     break;
   case eParam_osc0_dac2 :
-    mix_osc_dac[0][2] = v;
+    mix_osc_dac[0][2] = trunc_fr1x32( v );
     break;
   case eParam_osc0_dac3 :
-    mix_osc_dac[0][3] = v;
+    mix_osc_dac[0][3] = trunc_fr1x32( v );
     break;
   case eParam_osc1_dac0 :
-    mix_osc_dac[1][0] = v;
+    mix_osc_dac[1][0] = trunc_fr1x32( v );
     break;
   case eParam_osc1_dac1 :
-    mix_osc_dac[1][1] = v;
+    mix_osc_dac[1][1] = trunc_fr1x32( v );
     break;
   case eParam_osc1_dac2 :
-    mix_osc_dac[1][2] = v;
+    mix_osc_dac[1][2] = trunc_fr1x32( v );
     break;
   case eParam_osc1_dac3 :
-    mix_osc_dac[1][3] = v;
+    mix_osc_dac[1][3] = trunc_fr1x32( v );
     break;
 
 

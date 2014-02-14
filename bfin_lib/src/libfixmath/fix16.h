@@ -94,7 +94,7 @@ static inline fix16_t fix16_from_dbl(double a)
 /*! Multiplies the two given fix16_t's and returns the result.
 */
 //extern fix16_t fix16_mul(fix16_t inArg0, fix16_t inArg1) FIXMATH_FUNC_ATTRS;
-extern fix16_t fix16_mul(fix16_t inArg0, fix16_t inArg1);
+extern inline fix16_t fix16_mul(fix16_t inArg0, fix16_t inArg1);
 
 /*! Divides the first given fix16_t by the second and returns the result.
 */

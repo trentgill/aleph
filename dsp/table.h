@@ -39,10 +39,10 @@
 //extern void fixtable_deinit(fract32* tab);
  
 // lookup given 16.16 index in [0, size-1]
-extern fract32 table_lookup_idx(fract32* tab, u32 size, fix16 idx);
+extern inline fract32 table_lookup_idx(fract32* tab, u32 size, fix16 idx);
 
 // assume size is 2^N and use bitmask for faster wrapping
-extern fract32 table_lookup_idx_mask(fract32* tab, u32 mask, fix16 idx);
+extern inline fract32 table_lookup_idx_mask(fract32* tab, u32 mask, fix16 idx);
 
 
 // lookup given normalized index in [-1, 1]
