@@ -14,6 +14,8 @@
 //static fract16 src[4];
 //static fract32 dst[4];
 
+static  int i, j;
+
 // mix modulation busses
 void mix_mod(void) {
 #if 1
@@ -92,19 +94,21 @@ void mix_voice(void) {
 
 // mix adc input to output busses
 void mix_adc (void) { 
-#if 1
+  fract32* pin = in;
+  fract32* pout;
+  fract16* pmix;
+  fract16 in16;
+#if 0
   // TEST: no input
   ;;
 #else
   for(i=0; i<4; ++i) {
-    src[i] = trunc_fr1x32(in[i]);
-  }
-  for(i=0; i<4; ++i) {
+    pmix = mix_adc_dac[i];
+    in16 = trunc_fr1x32(*pin++);
+    pout = out;
     for(j=0; j<4; ++j) {
-      dst[j] = add_fr1x32(out[j], mult_fr1x32(src[i], trunc_fr1x32(mix_adc_dac[i][j]) ) );
-    }
-    for(j=0; j<4; ++j) {
-      out[j] = dst[j];
+      *pout = add_fr1x32(*pout, mult_fr1x32(in16, trunc_fr1x32(*pmix++) ) );
+      ++pout;
     }
   }
 #endif
