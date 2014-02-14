@@ -5,10 +5,8 @@
 
  */
 
-#include "fract_math.h"
-
-#include "bfin_core.h"
-#include "waves.h"
+#include <fract_base.h>
+#include <fract_math.h>
 
 // temp
 //static fract16 src[4];
@@ -17,105 +15,32 @@
 static  int i, j;
 
 // mix modulation busses
-void mix_mod(void) {
-#if 1
-  /// TEST: only pm01 and pm10, patched directly 
-  pmIn[0] = oscOut[1];
-  pmIn[1] = oscOut[0];
-#else
-  /* for(i=0; i<WAVES_NVOICES; ++i) { */
-  /*   src[i] = trunc_fr1x32(oscOut[i]);     */
-  /* } */
-  /* for(i=0; i<WAVES_NVOICES; ++i) { */
-  /*   for(j=0; j<WAVES_NVOICES; ++j) { */
-  /*     dst[j] = add_fr1x32(pmIn[j], mult_fr1x32(src, trunc_fr1x32(mix_osc_pm[i][j]) ) ); */
-  /*   } */
-  /*   for(j=0; j<WAVES_NVOICES; ++j) { */
-  /*     pmIn[j] = dst[j]; */
-  /*     //      wmIn[j] = add_fr1x32(wmIn[j], mult_fr1x32(src[i], trunc_fr1x32(mix_osc_wm[i][j]) ) ); */
-  /*     //      amIn[j] = add_fr1x32(amIn[j], mult_fr1x32(src[i], trunc_fr1x32(mix_osc_am[i][j]) ) ); */
-  /*     //      fmIn[j] = add_fr1x32(fmIn[j], mult_fr1x32(src[i], trunc_fr1x32(mix_osc_fm[i][j]) ) ); */
-  /*   } */
-  /* } */
-#endif
+void mix_mod(const fract32* pin, fract32* pout, const fract16** ppmix) {
+  pout[0] = pin[1];
+  pout[1] = pin[0];
 }
 
 // mix voice output to output busses
-void mix_voice(void) {
-#if 1
-  // TEST: all oscs to all outputs
-  out[0] = out[1] = out[2] = out[3] =
-    add_fr1x32( voiceOut[0], voiceOut[1] );
+void mix_voice(const fract32* pin, fract32* pout, const fract16** ppmix) {
+  fract32 s = *pin++;
+  s = add_fr1x32(s, *pin);
 
-#else
-  
-  for(i=0; i<WAVES_NVOICES; ++i) {
-    
-    for(j=0; j<4; ++j) {
-
-      out[j] = add_fr1x32( out[j], 
-			      mult_fr1x32( mix_osc_dac[i][j], 
-					   trunc_fr1x32(voiceOut[i])
-					   )
-			      );
-    }
-  }
-   
-#endif
-
-/* #else */
-/*   for(i=0; i<WAVES_NVOICES; ++i) { */
-/*     src[i] = trunc_fr1x32(voiceOut[i]); */
-/*   } */
-
-/*   for(i=0; i<WAVES_NVOICES; ++i) { */
-
-/*     for(j=0; j<4; ++j) { */
-/*       dst[j] = add_fr1x32(out[j], mult_fr1x32(src[i], trunc_fr1x32(mix_osc_dac[i][j]) ) ); */
-/*     } */
-/*     for(j=0; j<4; ++j) { */
-/*       out[j] = dst[j]; */
-/*     } */
-
-
-/*   } */
-/* #endif */
+  *pout++ = s;
+  *pout++ = s;
+  *pout++ = s;
+  *pout = s;
 }
 
-// mix adc input to output busses
-void mix_adc (void) { 
-  /* fract32* pin = in; */
-  /* fract32* pout; */
-  /* fract16* pmix; */
-  /* fract16 in16; */
-
-  /* //// TEST */
-  /* fract32 dummy[4] = { 0, 0, 0, 0 }; */
-  /* //// / */
-
-#if 1
-  // TEST: no input
-  ;;
-#else
-
-  fix16 src;
-  fix16 dum;
-  for(i=0; i<4; i++) {
-    src = trunc_fr1x32(in[0]);
-    for(j=0; j<4; j++) {
-      out[j] = add_fr1x32( out[j], mult_fr1x32(src, mix_adc_dac[i][j]);
-    }
-  }
-  
-  /* for(i=0; i<4; ++i) { */
-  /*   pmix = mix_adc_dac[i]; */
-  /*   in16 = trunc_fr1x32(*pin++); */
-  /*   //    pout = out; */
-  /*   pout = dummy; */
-  /*   for(j=0; j<4; ++j) { */
-  /*     *pout = add_fr1x32(*pout, mult_fr1x32(in16, trunc_fr1x32(*pmix++) ) ); */
-  /*     ++pout; */
-  /*   } */
-  /* } */
-#endif
+void mix_adc(fract32* pin, fract32* pout, const fract16** ppmix) {
+  //  fract32* pin = in;
+  //  fract32* pout = out;
+  //  fract16** ppmix = mix;
+  //  int i, j;
+  *pout = add_fr1x32(*pout, *pin);
+  pout++;
+  *pout = add_fr1x32(*pout, *pin);
+  pout++;
+  *pout = add_fr1x32(*pout, *pin);
+  pout++;
+  *pout = add_fr1x32(*pout, *pin);
 }

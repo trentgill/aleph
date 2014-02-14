@@ -88,7 +88,7 @@ static void calc_frame(void) {
 #if 1
 
   // mix modulation input
-  mix_mod();
+  //  mix_mod();
 
   for(i=0; i<WAVES_NVOICES; ++i) {
 
@@ -136,9 +136,10 @@ static void calc_frame(void) {
   }
 
   // mix outputs
-  out[0] = out[1] = out[2] = out[3] = 0;
-  mix_voice();
-  mix_adc();	
+  // out[0] = out[1] = out[2] = out[3] = 0;
+  mix_voice(voiceOut, out, (fract16**)mix_osc_dac);
+  mix_adc(in, out, (fract16**)mix_adc_dac);
+  //  mix_adc();	
 
 #else
   /* wavesVoice* v; */

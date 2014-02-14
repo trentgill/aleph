@@ -5,9 +5,8 @@ include version.mk
 version = $(maj).$(min).$(rev)
 ldr_name = aleph-$(module_name)-$(version).ldr
 
-module_obj = waves.o  \
+module_c_obj = waves.o  \
 	global.o \
-	mix.o \
 	$(audio_dir)/conversion.o \
 	$(audio_dir)/filter_1p.o \
 	$(audio_dir)/filter_svf.o \
@@ -18,6 +17,7 @@ module_obj = waves.o  \
 	$(bfin_lib_srcdir)/libfixmath/fix16.o \
 	$(bfin_lib_srcdir)/fix16.o
 
+module_asm_obj += mix.o
 
 all: aleph-$(module_name).ldr
 
@@ -39,19 +39,24 @@ desc:
 	-D NAME=\"$(module_name)\" \
 	-o $(module_name)_desc_build
 
-$(module_obj): %.o : %.c	
+$(module_c_obj): %.o : %.c	
 	$(CC) $(CFLAGS) -c -o $@ $< $(LDFLAGS)
 
-aleph-$(module_name): bfin_lib_target $(module_obj)
+$(module_asm_obj): %.o : %.s	
+	$(CC) $(CFLAGS) -c -o $@ $< $(LDFLAGS)
+
+aleph-$(module_name): bfin_lib_target $(module_c_obj) $(module_asm_obj)
 	$(CC) $(LDFLAGS) -T aleph-$(module_name).lds \
 	$(patsubst %.o, $(bfin_lib_objdir)%.o, $(bfin_lib_obj)) \
-	$(module_obj) \
+	$(module_c_obj) \
+	$(module_asm_obj) \
 	-D MAJ=$(maj) -D MIN=$(min) -D REV=$(rev) \
 	-o aleph-$(module_name) \
 	-lm -lbfdsp -lbffastfp
 
 clean: bfin_lib_clean
-	rm $(module_obj)
+	rm $(module_c_obj)
+	rm $(module_asm_obj)
 	rm aleph-$(module_name).ldr 
 	rm aleph-$(module_name)
 
