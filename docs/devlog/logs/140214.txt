@@ -1,0 +1,46 @@
+
+///
+// what i've been up to...
+
+trying to expand the ceiling on processing in aleph-waves to add mix points and hopefuly voices. should be applicable to other DSP modules as well.
+
+i had a few tactics in mind to try in the C, preprocessor, and ASM domains progressively, some straightforward and some more speculative:
+
+- replace mix points with 16-bit multiplies, truncating input as necessary. this is clearly a good idea in cases where the precision loss is acceptable [which it usually is; mult_fr1x32() is a single-cycle multiply fract16, producing fract32, and losing only 8 bits in the accumulation step compared to the full 32x32 mult; better to kee pto full 2-cycle 32x32 mults in signal generator internals though.]
+
+- eliminating function calls by macro-izing class functions and invoking them with a class variable directly. my hope is that in addition to eliminating stack management, it would allow the compiler to make better decisions.
+
+as it is, seems an effective for small classes like simple filters, especially if the "function" is used in a loop. but macro-izing the entire complex oscillator class actually made it slower.
+
+and, unfortunately, the optimization in bfin-elf-gcc does not seem very smart (on -O3.) certainly it is very hard to decipher the output, but it appears to prefer direct manipulation of the FP and many calls to CC and JUMP. when not actually calling gcc's arithmetic intrinsics [e.g. diff_hl_fr2x16() ] there seems to be no use of half-registers or parallel instructions.
+
+judging from ADI's application notes (especially EE-149: "Tuning C Source Code..."), visualDSP++ seems to have much more sophisticated and part-specific optimization strategies, but we can't use that. so, really the most effective strategy remaining is hand assembly"
+
+- so, the last method, which hand-written assembly modules linked together with the c sources. for relatively simple structures (like processing a whole matrix of mixing / routing busses) it is not too difficult to accomplish, and the speed improvements can be very large.
+
+so, i am writing little assembly units, starting with common things like mixing an NxN audio matrix. time permitting, i will move onto table lookup, filter processing, etc. the only problem with this approach is that it is very painstaking and time-consuming, especially given my learning curve with the blackfin's rich instruction set.
+
+i'll be syncing this work to the exp branch periodically, just as a failsafe, but don't expect things to be working too well at any given time.
+
+//
+// in other news...
+
+after a short time of tinkering, darren has figured out how to link SRAM to heap! so we have malloc() and free(), finally. 
+
+this will engender some immediate rewrites as we can allocate big temporary buffers to hold stuff like scene binary data, .ldr data, and maybe .json input/output strings. it also allows us to use a much broader range of external libraries.
+
+in addition, it opens the way for more sophisticated memory structures in future large iterations of BEES or in new applications. with proper memory management we can have true dynamic netowrks as in Pd or Max.
+
+//
+//// thoughts and notes
+
+
+- it would be really good to add a software-controlled avr32 reset, both for development (serial bus interruption) and for mid-performance panic. 
+
+- i am thinking of an avr32 control application that does nothing but read a text file and run a Lua interpreter. (these can easily be <200k and quite fast.) then the user just writes a LUA script for their application and loads it from sdcard, or even from internal flash.
+
+
+//
+//// TODO
+
+keep working on optimized low-level DSP units in blackfin ASM over the weekend.

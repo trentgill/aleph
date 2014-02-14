@@ -1,4 +1,4 @@
-.file "mix_test.c";
+.file "mix.s";
 .text;
 	.align 4
 .global _mix_mod;
@@ -30,21 +30,23 @@ _mix_mod:
 _mix_voice:
 	LINK 0
 	[--sp] = (r7:4) 	;
-	// input and output arrays
-	p2 = r0			; 
-	p1 = r1 		; 
+	// i/o arrays
+	p1 = r0			; 
+	p2 = r1 		;
+	// mix array
+	p3 = r3			;	
 	// sum the 2 input values
-	r7 = [p2++]		;
-	r6 = [p2]		;
+	r7 = [p1++]		;
+	r6 = [p1]		;
 	r7 = r7 + r6 (S) 	;
-
+	
 	// loop over outputs
-	p3 = 4			;
-	loop lp_outs lc0=p3	;
+	p4 = 4			;
+	loop lp_outs lc0=p4	;
 	loop_begin lp_outs	;
-		r5 = [p1]		;
+		r5 = [p2]		;
 		r4 = r5 + r7 (S)	;
-		[p1++] = r4		;
+		[p2++] = r4		;
 	loop_end lp_outs	;
 
 	(r7:4) = [sp++] 	;
