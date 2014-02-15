@@ -34,7 +34,8 @@ _mix_voice_fake:
 	p1 = r0			; 
 	p2 = r1 		;
 	// mix array
-	p3 = r3			;	
+	p3 = r3			;
+	
 	// sum the 2 input values
 	r7 = [p1++]		;
 	r6 = [p1]		;
@@ -67,21 +68,27 @@ _mix_voice:
 	p1 = r0			; 
 	p2 = r1 		;
 	// mix array
-	p3 = r3			;	
-	// sum the 2 input values
+	p3 = r2			;	
+	// loop over voices
+	p5 = 2			;
+	loop lp_ins lc1=p5	;
+	loop_begin lp_ins	;
+	// load input value
 	r7 = [p1++]		;
-	r6 = [p1]		;
-	r7 = r7 + r6 (S) 	;
-	
 	// loop over outputs
 	p4 = 4			;
 	loop lp_outs lc0=p4	;
 	loop_begin lp_outs	;
-		r5 = [p2]		;
-		r4 = r5 + r7 (S)	;
-		[p2++] = r4		;
+	// load mix multiplier
+	r6 = [p3++]		;
+	// multiply input by mix
+	r5 = r7.h * r6.h 	;
+	// load current output bus value
+	r4 = [p2]			;
+	// add scaled value to output and store
+	r3 = r4 + r5 (S)	;
+	[p2++] = r3		;
 	loop_end lp_outs	;
-
 	(r7:4) = [sp++] 	;
 	UNLINK;
 	rts;
