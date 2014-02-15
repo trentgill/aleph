@@ -25,6 +25,39 @@ _mix_mod:
 	.size	_mix_mod, .-_mix_mod
 	.align 4
 	
+.global _mix_voice_fake;
+.type _mix_voice_fake, STT_FUNC;
+_mix_voice_fake:
+	LINK 0
+	[--sp] = (r7:4) 	;
+	// i/o arrays
+	p1 = r0			; 
+	p2 = r1 		;
+	// mix array
+	p3 = r3			;	
+	// sum the 2 input values
+	r7 = [p1++]		;
+	r6 = [p1]		;
+	r7 = r7 + r6 (S) 	;
+	
+	// loop over outputs
+	p4 = 4			;
+	loop lp_outs lc0=p4	;
+	loop_begin lp_outs	;
+		r5 = [p2]		;
+		r4 = r5 + r7 (S)	;
+		[p2++] = r4		;
+	loop_end lp_outs	;
+
+	(r7:4) = [sp++] 	;
+	UNLINK;
+	rts;
+	.size	_mix_voice, .-_mix_voice
+	.align 4
+
+
+
+		
 .global _mix_voice;
 .type _mix_voice, STT_FUNC;
 _mix_voice:
@@ -54,6 +87,7 @@ _mix_voice:
 	rts;
 	.size	_mix_voice, .-_mix_voice
 	.align 4
+
 
 	
 .global _mix_adc;
