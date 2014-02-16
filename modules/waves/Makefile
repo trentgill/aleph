@@ -7,6 +7,7 @@ ldr_name = aleph-$(module_name)-$(version).ldr
 
 module_c_obj = waves.o  \
 	global.o \
+	mix.o \
 	$(audio_dir)/conversion.o \
 	$(audio_dir)/filter_1p.o \
 	$(audio_dir)/filter_svf.o \
@@ -17,7 +18,7 @@ module_c_obj = waves.o  \
 	$(bfin_lib_srcdir)/libfixmath/fix16.o \
 	$(bfin_lib_srcdir)/fix16.o
 
-module_asm_obj += mix.o
+# module_asm_obj += mix.o
 
 all: aleph-$(module_name).ldr
 

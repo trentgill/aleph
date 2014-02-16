@@ -25,66 +25,58 @@ _mix_mod:
 	.size	_mix_mod, .-_mix_mod
 	.align 4
 	
-.global _mix_voice_fake;
-.type _mix_voice_fake, STT_FUNC;
-_mix_voice_fake:
-	LINK 0
-	[--sp] = (r7:4) 	;
-	// i/o arrays
-	p1 = r0			; 
-	p2 = r1 		;
-	// mix array
-	p3 = r3			;	
-	// sum the 2 input values
-	r7 = [p1++]		;
-	r6 = [p1]		;
-	r7 = r7 + r6 (S) 	;
+
+////////////////////////////////
+/*
+extern void mix_voice(
+	const fract32* in,
+	fract32* out,
+	const fract16* mix
+*/
 	
-	// loop over outputs
-	p4 = 4			;
-	loop lp_outs lc0=p4	;
-	loop_begin lp_outs	;
-		r5 = [p2]		;
-		r4 = r5 + r7 (S)	;
-		[p2++] = r4		;
-	loop_end lp_outs	;
-
-	(r7:4) = [sp++] 	;
-	UNLINK;
-	rts;
-	.size	_mix_voice, .-_mix_voice
-	.align 4
-
-
-
-		
 .global _mix_voice;
 .type _mix_voice, STT_FUNC;
-_mix_voice:
-	LINK 0
-	[--sp] = (r7:4) 	;
-	// i/o arrays
-	p1 = r0			; 
-	p2 = r1 		;
-	// mix array
-	p3 = r3			;	
-	// sum the 2 input values
-	r7 = [p1++]		;
-	r6 = [p1]		;
-	r7 = r7 + r6 (S) 	;
 	
+_mix_voice:
+	// push data registers, no stack variables
+	LINK 0
+	[--sp] = (r7:4, p5:1) 	;
+	// i/o arrays
+	p5 = r0			; 
+	p4 = r1 		;
+	// mix array
+	p3 = r2			;	
+	// loop over voices
+	//// FIXME: HW loop too much overhead?
+	p2 = 2			;
+	loop mix_voice_lp_in lc1 = p2	;
+	loop_begin mix_voice_lp_in	;
+	// load input value
+	r7 = [p5++]		;
+	// reset output pointer
+	p4 = r1			       ;
 	// loop over outputs
-	p4 = 4			;
-	loop lp_outs lc0=p4	;
-	loop_begin lp_outs	;
-		r5 = [p2]		;
-		r4 = r5 + r7 (S)	;
-		[p2++] = r4		;
-	loop_end lp_outs	;
-
-	(r7:4) = [sp++] 	;
+	p1 = 4			;
+	loop mix_voice_lp_out lc0 = p1	;
+	loop_begin mix_voice_lp_out	;
+	// load mix value (16b)
+	r6 = W [p3++] (X)		;
+	// truncate input and multiply
+	r5 = r7.h * r6.l ;
+	// load output value (32b)
+	r4 = [p4]		;
+	// add scaled input (saturating)
+	r0 = r4 + r5 (S)	;
+	// store output to bus
+	[p4++] = r0		;
+	// end loops
+	loop_end mix_voice_lp_out	;
+	loop_end mix_voice_lp_in	;
+	// pop stack and return
+	(r7:4, p5:1) = [sp++] 	;
 	UNLINK;
 	rts;
+	
 	.size	_mix_voice, .-_mix_voice
 	.align 4
 

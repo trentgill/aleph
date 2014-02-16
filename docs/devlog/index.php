@@ -15,7 +15,7 @@
  }
    
    .log {
-     font-family:"Helvetica Neue", "HelveticaNeueLT Std", Helvetica, Arial, sans-serif;
+     font-family:Consolas, Monaco, Courier, monospace;
      white-space: pre-wrap;
  width:666px;
  background:#ddd;

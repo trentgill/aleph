@@ -137,8 +137,10 @@ static void calc_frame(void) {
 
   // mix outputs
   out[0] = out[1] = out[2] = out[3] = 0;
-  mix_voice(voiceOut, out, (fract16**)mix_osc_dac);
-  mix_adc(in, out, (fract16**)mix_adc_dac);
+
+  //  mix_voice(voiceOut, out, (const fract16**)mix_osc_dac);
+  mix_voice(voiceOut, out, (const fract16*) &(mix_osc_dac[0][0]) );
+  mix_adc(in, out, (const fract16**)mix_adc_dac);
   //  mix_adc();	
 
 #else
