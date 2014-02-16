@@ -5,7 +5,7 @@
 #include "waves.h"
 
 // oscillator
-ComplexOsc osc[WAVES_NVOICES];
+ComplexOsc osc[WAVES_NVOICES] __attribute__ ((section ("MEM_L1_DATA_A"))) ; // does this work?
 // filter
 filter_svf svf[WAVES_NVOICES];
 // mixed amplitude envelope

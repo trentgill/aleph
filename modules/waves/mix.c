@@ -45,7 +45,7 @@ void mix_voice (const fract32* pin, fract32* pout, const fract16* mix) {
       //      *o = add_fr1x32(*o, mult_fr1x32(trunc_fr1x32(*pin), *mix) );
       // and even a constant multiply gives it a warble
       //            *pOut = add_fr1x32(*pOut, mult_fr1x32x32(*in, 0x7fff0000)  );
-      *pOut = add_fr1x32(*pOut, *in);
+      *o = add_fr1x32(*o, *pin);
       o++;
       mix++;
     }
