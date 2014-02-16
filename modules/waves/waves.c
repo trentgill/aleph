@@ -139,7 +139,7 @@ static void calc_frame(void) {
   out[0] = out[1] = out[2] = out[3] = 0;
 
   //  mix_voice(voiceOut, out, (const fract16**)mix_osc_dac);
-  mix_voice(voiceOut, out, (const fract16*) &(mix_osc_dac[0][0]) );
+  mix_voice(voiceOut, out, (const fract16*) &(mix_osc_dac[0]);
   mix_adc(in, out, (const fract16**)mix_adc_dac);
   //  mix_adc();	
 
@@ -230,25 +230,11 @@ void module_init(void) {
     
   }
 
-  //  oscAmp1 = oscAmp0 = INT32_MAX >> 2;
-
-  // filters
-  /* filter_svf_init(&(svf1)); */
-  /* filter_svf_init(&(svf0));     */
-
-  // allocate smoothers
-  //  amp1Lp = (filter_1p_lo*)malloc(sizeof(filter_1p_lo));
-  //  filter_1p_lo_init( amp1Lp, oscAmp1 );
-
-  /* amp0Lp = (filter_1p_lo*)malloc(sizeof(filter_1p_lo)); */
-  /* filter_1p_lo_init( amp0Lp, oscAmp0 ); */
-
   // dac
   filter_1p_lo_init( &(cvSlew[0]), 0xf );
   filter_1p_lo_init( &(cvSlew[1]), 0xf );
   filter_1p_lo_init( &(cvSlew[2]), 0xf );
   filter_1p_lo_init( &(cvSlew[3]), 0xf );
-
 
   // set parameters to defaults
   param_setup(  eParamHz1, 	220 << 16 );

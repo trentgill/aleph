@@ -33,9 +33,6 @@ void sport0_rx_isr() {
   /// inform the world that we're busy processing an audio frame
   READY_LO;
 
-
-
-
   if(!processAudio) { 
     READY_HI;
     /// if this interrupt came from DMA1, clear it and continue(W1C)

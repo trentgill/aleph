@@ -14,7 +14,7 @@
 
 
 // mix modulation busses
-void mix_mod(const fract32* pin, fract32* pout, const fract16** ppmix) {
+void mix_mod(const fract32* pin, fract32* pout, const fract16* mix) {
   pout[0] = pin[1];
   pout[1] = pin[0];
 }
@@ -44,8 +44,8 @@ void mix_voice (const fract32* pin, fract32* pout, const fract16* mix) {
       /// this drops an octave
       //      *o = add_fr1x32(*o, mult_fr1x32(trunc_fr1x32(*pin), *mix) );
       // and even a constant multiply gives it a warble
-      //            *pOut = add_fr1x32(*pOut, mult_fr1x32x32(*in, 0x7fff0000)  );
-      *o = add_fr1x32(*o, *pin);
+      //      *o = add_fr1x32(*o, mult_fr1x32x32(*pin, 0x7fff0000)  );
+            *o = add_fr1x32(*o, *pin);
       o++;
       mix++;
     }

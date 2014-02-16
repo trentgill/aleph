@@ -57,7 +57,6 @@ aleph-$(module_name): bfin_lib_target $(module_c_obj) $(module_asm_obj)
 
 clean: bfin_lib_clean
 	rm $(module_c_obj)
-	rm $(module_asm_obj)
 	rm aleph-$(module_name).ldr 
 	rm aleph-$(module_name)
 

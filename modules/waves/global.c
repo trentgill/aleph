@@ -5,7 +5,7 @@
 #include "waves.h"
 
 // oscillator
-ComplexOsc osc[WAVES_NVOICES] __attribute__ ((section ("MEM_L1_DATA_A"))) ; // does this work?
+ComplexOsc osc[WAVES_NVOICES];
 // filter
 filter_svf svf[WAVES_NVOICES];
 // mixed amplitude envelope
@@ -16,7 +16,7 @@ fract32 oscOut[WAVES_NVOICES] = { 0, 0 };
 // filter output bus
 fract32 svfOut[WAVES_NVOICES] = { 0, 0 };
 // mixed output
-fract32 voiceOut[WAVES_NVOICES] = { 0, 0 };
+fract32 voiceOut[WAVES_NVOICES] = { 0, 0 } ;
 
 // dry mix
 fract16 fDry[WAVES_NVOICES];

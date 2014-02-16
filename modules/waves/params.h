@@ -5,6 +5,11 @@
 #include "param_common.h"
 
 //---------- defines
+
+/// number of voices
+#define WAVES_VOICE_COUNT 2
+
+
 // ranges and radix
 // ranges are in 16.16
 // radix should be minimal bits to accommodate entire integer range.

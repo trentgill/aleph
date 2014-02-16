@@ -30,7 +30,6 @@ lcprng rng[MAPS_NVOICES];
 // amp smoother
 SlewExp ampSlew[MAPS_NVOICES];
 
-
 //-----------------------
 //------ static variables
 
@@ -80,16 +79,10 @@ void module_init(void) {
 
 // frame callback
 void module_process_frame(void) {
-  u8 i;
-  for(i=0; i<MAPS_NVOICES; i++) {
-    slew_exp_calc_frame( ampSlew[i] );
-  }
 
-  
   for(i=0; i<MAPS_NVOICES; i++) {
     lcprng_calc_frame( rng[i] );
   }
-
 
   for(i=0; i<MAPS_NVOICES; i++) {
     out[i] = mult_fr1x32x32( rng[i].x, ampSlew[i].y );
