@@ -35,11 +35,21 @@ static inline void osc_calc_pm(ComplexOsc* osc) {
   */
 
   // 16b phase mod:
+  /*
   osc->idxMod = fix16_add(osc->idx, 
 			  fix16_mul( mult_fr1x32(osc->pmIn, osc->pmAmt),
 				     WAVE_TAB_MAX16
 				     )
 			  );
+*/
+  // with pointer to modulation input bus:
+
+  osc->idxMod = fix16_add(osc->idx, 
+			  fix16_mul( mult_fr1x32(*(osc->pmModBus), osc->pmAmt),
+				     WAVE_TAB_MAX16
+				     )
+			  );
+
 
   // wrap negative
   while (BIT_SIGN_32(osc->idxMod)) {

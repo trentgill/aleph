@@ -48,26 +48,23 @@ typedef struct _ComplexOsc {
   fract32 val;
   // wavetable data (pointer to table of tables)
   wavtab_t tab;
-  // normalized waveshape
-  fract16 shape;
-
   // frequency in hz
   fix16 hz;
   // tuning ratio
   fix16 ratio;
- 
-
   // base phase as fractional index
-  fix16 idx;
-  
+  fix16 idx;  
   // modulated phase
   fix16 idxMod;
+
   // phase modulation amount [0-1)
   fract16 pmAmt;
+  // normalized waveshape
+  fract16 shape;
 
+  //--- parameters and busses accessed by pointer
   // phase mod input bus
-  fract16* pmMod;
-
+  fract16* pmModBus;
   // slew i/o pointers for current phase increment
   // (weird i know, it is for speed)
   fract32* incIn;
