@@ -13,7 +13,6 @@
 // audio lib
 #include "filter_1p.h"
 #include "filter_svf.h"
-#include "osc.h"
 #include "table.h"
 #include "conversion.h"
 // bfin
@@ -27,10 +26,10 @@
 #include "params.h"
 #include "types.h"
 
+// waves
+#include "mix.h"
+#include "osc_waves.h"
 #include "waves.h"
-
-
-#define WAVES_NVOICES 2
 
 //-------- data types
 
@@ -56,7 +55,7 @@ static wavesData * data;
 
 /// FIXME: wavetables are statically linked constants for now.
 /// would like to have them in SDRAM and allow arbitrary asynchronous load.
-static const fract32 wavtab[WAVE_TAB_NUM][WAVE_TAB_SIZE] = { 
+ const fract32 wavtab[WAVE_TAB_NUM][WAVE_TAB_SIZE] = { 
 #include "wavtab_data_inc.c" 
 };
 
@@ -88,28 +87,30 @@ static void calc_frame(void) {
   // mix modulation input
   //  mix_mod();
 
-  for(i=0; i<WAVES_NVOICES; ++i) {
+  for(i=0; i<WAVES_VOICE_COUNT; ++i) {
 
     // phase mod with fixed 1-frame delay
-    osc_pm_in( &(osc[i]), pmIn[i] );
+    //    osc_pm_in( &(osc[i]), pmIn[i] );
 
     // calculate oscillator output
     o = oscOut[i] = shr_fr1x32( osc_next( &(osc[i]) ), 1);    
 
     // process SVF param integrators
-    slew_exp_calc_frame( cutSlew[i] );
-    slew_exp_calc_frame( rqSlew[i] );
+    //    slew_exp_calc_frame( cutSlew[i] );
+    //    slew_exp_calc_frame( rqSlew[i] );
 
     // set svf params
-    filter_svf_set_coeff( &(svf[i]), (cutSlew[i]).y );
-    filter_svf_set_rq(	  &(svf[i]), (rqSlew[i]).y );
+    //    filter_svf_set_coeff( &(svf[i]), (cutSlew[i]).y );
+    //    filter_svf_set_rq(	  &(svf[i]), (rqSlew[i]).y );
 
+    filter_svf_set_coeff( &(svf[i]), *(svfCutOut[i]) );
+    filter_svf_set_rq(	  &(svf[i]), *(svfRqOut[i]) );
     // calculate svf output
     svfOut[i] = filter_svf_next( &(svf[i]), shr_fr1x32(o, 1) );
 
     // process amp smoother
-    slew_exp_calc_frame( ampSlew[i] );
-    voiceAmp[i] = (ampSlew[i]).y;
+    //    slew_exp_calc_frame( ampSlew[i] );
+    //    voiceAmp[i] = (ampSlew[i]).y;
 
     // apply wet/dry/amp
     //// TEST:
@@ -119,9 +120,17 @@ static void calc_frame(void) {
     /* 					     ) */
     /* 				  ); */
     
-    voiceOut[i] = mult_fr1x32x32( voiceAmp[i],
-				  add_fr1x32(mult_fr1x32( trunc_fr1x32(oscOut[i]), fDry[i] ),
-					     mult_fr1x32( trunc_fr1x32(svfOut[i]), fWet[i] )
+    voiceOut[i] = mult_fr1x32x32(
+				 *(voiceAmpOut[i]),
+				  add_fr1x32(
+					     mult_fr1x32( 
+							 trunc_fr1x32(oscOut[i]), 
+							 *(svfDryOut[i]) 
+							  ),
+					     mult_fr1x32( 
+							 trunc_fr1x32(svfOut[i]), 
+							  *(svfWetOut[i]) 
+							  )
 					     )
 				  );
   }
@@ -130,8 +139,8 @@ static void calc_frame(void) {
   out[0] = out[1] = out[2] = out[3] = 0;
 
   //  mix_voice(voiceOut, out, (const fract16**)mix_osc_dac);
-  mix_voice(voiceOut, out, (const fract16*) &(mix_osc_dac[0]);
-  mix_adc(in, out, (const fract16**)mix_adc_dac);
+  mix_voice(voiceOut, out, (const fract16*) &(mix_osc_dac[0]) );
+  mix_adc(in, out, (const fract16*) &(mix_adc_dac[0]) );
   
 }
 
@@ -150,27 +159,15 @@ void module_init(void) {
   gModuleData->paramData = data->mParamData;
   gModuleData->numParams = eParamNumParams;
 
-  /* // fill param values with minima as default */
-  /* for(i=0; i<eParamNumParams; ++i) { */
-  /*   gModuleData->paramData[i].value = gModuleData->paramDesc[i].min; */
-  /* } */
-
-  for(i=0; i<WAVES_NVOICES; i++) {
+  for(i=0; i<WAVES_VOICE_COUNT; i++) {
     fract32 tmp = FRACT32_MAX >> 2;
-    /* osc_init( &(voice[i].osc), &wavtab, SAMPLERATE ); */
-    /* filter_svf_init( &(voice[i].svf) ); */
-    /* voice[i].amp = tmp; */
 
-    osc_init( &(osc[i]), &wavtab, SAMPLERATE );
     filter_svf_init( &(svf[i]) );
-    voiceAmp[i] = tmp;
+    //    voiceAmp[i] = tmp;
 
-    /* filter_1p_lo_init(&(voice[i].ampSlew), 0xf); */
-    /* filter_1p_lo_init(&(voice[i].cutSlew), 0xf); */
-    /* filter_1p_lo_init(&(voice[i].rqSlew), 0xf); */
-    slew_exp_init(ampSlew[i], PARAM_AMP_12);
-    slew_exp_init(cutSlew[i], PARAM_CUT_DEFAULT);
-    slew_exp_init(rqSlew[i], PARAM_RQ_DEFAULT);
+    /* slew_exp_init(ampSlew[i], PARAM_AMP_12); */
+    /* slew_exp_init(cutSlew[i], PARAM_CUT_DEFAULT); */
+    /* slew_exp_init(rqSlew[i], PARAM_RQ_DEFAULT); */
     
   }
 

@@ -1,7 +1,11 @@
+#include "module.h"
+#include "waves.h"
+
 // set param values.
-// this is a separate file for convenience only.
 
 void module_set_param(u32 idx, ParamValue v) {
+
+#if 0
   switch(idx) {
 
   case eParamHz1:
@@ -35,7 +39,7 @@ void module_set_param(u32 idx, ParamValue v) {
     break;
 
   case eParamWm10:
-    osc_set_wm ( &(osc[0]), BIT_ABS_32(FIX16_FRACT_TRUNC(v)) );
+    //    osc_set_wm ( &(osc[0]), BIT_ABS_32(FIX16_FRACT_TRUNC(v)) );
     break;
   case eParamWm01:
     osc_set_wm ( &(osc[1]), BIT_ABS_32(FIX16_FRACT_TRUNC(v)) );
@@ -283,4 +287,5 @@ void module_set_param(u32 idx, ParamValue v) {
     break;
   }
 
+#endif
 }

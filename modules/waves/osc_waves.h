@@ -8,6 +8,7 @@
 #ifndef _ALEPH_WAVES_OSC_H_
 #define _ALEPH_WAVES_OSC_H_
 
+#include <fract_base.h>
 #include "fix.h"
 
 
@@ -49,30 +50,36 @@ typedef struct _ComplexOsc {
   wavtab_t tab;
   // normalized waveshape
   fract16 shape;
+
   // frequency in hz
   fix16 hz;
   // tuning ratio
   fix16 ratio;
+ 
+
   // base phase as fractional index
   fix16 idx;
+  
   // modulated phase
   fix16 idxMod;
   // phase modulation amount [0-1)
   fract16 pmAmt;
-  // shape modulation amount [0-1)
-  fract16 wmAmt;
+
   // phase mod input bus
   fract16* pmMod;
+
+  // slew i/o pointers for current phase increment
+  // (weird i know, it is for speed)
+  fract32* incIn;
+  fract32* incOut;
+
 } ComplexOsc;
 
 // collection of pointers for param smoother i/o ...
 typedef struct _ComplexOsc_params {
   fract32* incIn;
   fract32* incOut;
-  fract16* pmIn;
-  fract16* pmOut;
-  fract16* shapeIn;
-  fract16* shapeOut;
+  fract16* phaseModIn;
 } ComplexOsc_params;
 
 // initialize given table data, 
@@ -80,7 +87,6 @@ typedef struct _ComplexOsc_params {
 extern void osc_init( ComplexOsc* osc, 
 		      wavtab_t tab, 
 		      ComplexOsc_params* params,
-		      fract16* phaseModIn
 		     );
 
 // set base frequency in hz

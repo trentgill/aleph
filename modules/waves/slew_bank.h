@@ -82,3 +82,5 @@ extern void slew_bank_32_calc_frame(void);
 
 // calculate 1 frame for all 16b smoothers
 extern void slew_bank_16_calc_frame(void);
+
+#endif // h guard
