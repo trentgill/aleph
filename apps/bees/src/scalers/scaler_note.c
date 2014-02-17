@@ -22,7 +22,6 @@ static u8 initFlag = 0;
 //-------------------
 //--- static funcs
 
-
 //-----------------------
 //---- extern funcs
 

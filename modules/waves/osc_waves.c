@@ -54,10 +54,10 @@ static inline void osc_calc_pm(ComplexOsc* osc) {
 
 // lookup 
 static inline fract32 osc_lookup(ComplexOsc* osc) {
-  u32 idxA = osc->shapeMod >> WAVE_TAB_RSHIFT;
+  u32 idxA = osc->shape >> WAVE_TAB_RSHIFT;
   u32 idxB = idxA + 1;
   
-  fract32 mul = shr_fr1x32((fract32)(osc->shapeMod & WAVE_SHAPE_MASK), WAVE_TAB_LSHIFT);
+  fract32 mul = shr_fr1x32((fract32)(osc->shape & WAVE_SHAPE_MASK), WAVE_TAB_LSHIFT);
   fract32 mulInv = sub_fr1x32(FR32_MAX, mul);
   
   return add_fr1x32( 
@@ -100,7 +100,7 @@ void osc_init( ComplexOsc* osc,
 
   osc->incIn = params->incIn;
   osc->inOut = params->incOut;
-  osc->pmOut = params->pmIn;
+  osc->pmIn = params->pmIn;
   osc->pmOut = params->pmOut;
   osc->shapeIn = params->shapeIn;
   osc->shapeOut = params->shapeOut;
@@ -110,7 +110,8 @@ void osc_init( ComplexOsc* osc,
 // set waveshape (table)
 void osc_set_shape(ComplexOsc* osc, fract32 shape) {
   //  filter_1p_lo_in( &(osc->lpShape), shape );
-  (osc->lpShape).x = shape;
+  //  (osc->lpShape).x = shape;
+  *(osc->shapeIn) = shape;
 }
 
 // set base frequency in hz
@@ -126,31 +127,10 @@ void osc_set_tune(ComplexOsc* osc, fix16 ratio) {
 }
 
 // phase modulation amount
-void osc_set_pm(ComplexOsc* osc, fract32 amt) {
+void osc_set_pm(ComplexOsc* osc, fract16 amt) {
   //  filter_1p_lo_in( &(osc->lpPm), amt);
-  (osc->lpPm).x = amt;
-}
-
-// shape modulation amount
-void osc_set_wm(ComplexOsc* osc, fract32 amt) {
-  //  filter_1p_lo_in( &(osc->lpWm), amt);
-  (osc->lpWm).x = amt;
-}
-
-// phase modulation input
-void osc_pm_in(ComplexOsc* osc, fract32 val) {
-  osc->pmIn = val;
-}
-
-// shape modulation input
-void osc_wm_in(ComplexOsc* osc, fract32 val) {
-  osc->wmIn = val;
-}
-
-
-// set bandlimiting
-void osc_set_bl(ComplexOsc* osc, fract32 bl) {
-  osc->bandLim = bl;
+  //  (osc->lpPm).x = amt;
+  *(osc->pmIn) = amt;
 }
 
 // get next frame value
@@ -170,15 +150,9 @@ fract32 osc_next(ComplexOsc* osc) {
   /* osc->inc = (osc->lpInc).y; */
   /* osc->shape = (osc->lpShape).y; */
   /* osc->pmAmt = (osc->lpPm).y; */
-  
-  // calculate waveshape modulation + bandlimiting
-  //  osc_calc_wm(osc);
-  // doesn't sound great yet anyways
-  osc->shapeMod = osc->shape;
 
   // calculate phase modulation
   osc_calc_pm(osc);
-
 
   // advance phase
   osc_advance(osc);

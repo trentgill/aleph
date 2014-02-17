@@ -32,8 +32,9 @@
 #define WAVES_SLEW32_COUNT (WAVES_VOICE_COUNT * WAVES_SLEW32_PER_VOICE)
 enum {
   eSlew32_oscInc,
+  eSlew32_voiceAmp,
   eSlew32_svfCut,
-  eSlew32_svfSlew,
+  eSlew32_svfRq,
 };
 
 /*   each voice has 16b slew for:
@@ -41,7 +42,7 @@ enum {
      - waveshape
      - filter wet
      - filter dry
-     - mix? (not yet)
+     [ - mix? (not yet) ]
 */
 #define WAVES_SLEW16_PER_VOICE 4
 #define WAVES_SLEW16_COUNT (WAVES_VOICE_COUNT * WAVES_SLEW16_PER_VOICE)

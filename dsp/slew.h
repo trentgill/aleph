@@ -1,4 +1,4 @@
-o#ifndef    _ALEPH_DSP_SLEW_H_
+#ifndef    _ALEPH_DSP_SLEW_H_
 #define    _ALEPH_DSP_SLEW_H_
 
 // macro-ized slew functions

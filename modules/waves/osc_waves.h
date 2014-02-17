@@ -57,18 +57,16 @@ typedef struct _ComplexOsc {
   fix16 idx;
   // modulated phase
   fix16 idxMod;
-  // fixed-point index increment
-  fix16 inc;
   // phase modulation amount [0-1)
   fract16 pmAmt;
   // shape modulation amount [0-1)
   fract16 wmAmt;
-  /// store last modulation input values for recalculation
-  fract32 pmIn, wmIn;
+  // phase mod input bus
+  fract16* pmMod;
 } ComplexOsc;
 
 // collection of pointers for param smoother i/o ...
-typedef struct _ComplexOsc_paramSlew {
+typedef struct _ComplexOsc_params {
   fract32* incIn;
   fract32* incOut;
   fract16* pmIn;
@@ -81,32 +79,26 @@ typedef struct _ComplexOsc_paramSlew {
 /// pointers to parameter smoothing i/o
 extern void osc_init( ComplexOsc* osc, 
 		      wavtab_t tab, 
-		      ComplexOsc_params* params
+		      ComplexOsc_params* params,
+		      fract16* phaseModIn
 		     );
 
-// set waveshape (table)
-extern void osc_set_shape(ComplexOsc* osc, fract32 shape);
 // set base frequency in hz
 extern void osc_set_hz(ComplexOsc* osc, fix16 hz);
+
 // set fine-tuning ratio
 extern void osc_set_tune(ComplexOsc* osc, fix16 ratio);
 
+// set waveshape (table index)
+extern void osc_set_shape(ComplexOsc* osc, fract16 shape);
+
 // phase modulation amount
-extern void osc_set_pm(ComplexOsc* osc, fract32 wmAmt);
-// shape modulation amount
-extern void osc_set_wm(ComplexOsc* osc, fract32 wmAmt);
+extern void osc_set_pm(ComplexOsc* osc, fract16 amt);
 
 // phase modulation input
-extern void osc_pm_in(ComplexOsc* osc, fract32 pm);
-// shape modulation input
-extern void osc_wm_in(ComplexOsc* osc, fract32 wm);
-
-// set bandlimiting coefficient
-extern void osc_set_bl(ComplexOsc* osc, fract32 bl);
+extern void osc_pm_in(ComplexOsc* osc, fract16 mod);
 
 // compute next value
 extern fract32 osc_next( ComplexOsc* osc);
-
-
 
 #endif

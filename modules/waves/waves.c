@@ -85,21 +85,13 @@ static void calc_frame(void) {
   static u8 i;
   static fract32 o;
 
-#if 1
-
   // mix modulation input
   //  mix_mod();
 
   for(i=0; i<WAVES_NVOICES; ++i) {
 
-    //////// FIXME: macroize osc ?
-
     // phase mod with fixed 1-frame delay
     osc_pm_in( &(osc[i]), pmIn[i] );
-
-    // TODO: shape mod
-    // TODO: amp mod
-    // TODO: cutoff mod
 
     // calculate oscillator output
     o = oscOut[i] = shr_fr1x32( osc_next( &(osc[i]) ), 1);    
@@ -108,7 +100,6 @@ static void calc_frame(void) {
     slew_exp_calc_frame( cutSlew[i] );
     slew_exp_calc_frame( rqSlew[i] );
 
-    //////// FIXME: macroize SVF ?
     // set svf params
     filter_svf_set_coeff( &(svf[i]), (cutSlew[i]).y );
     filter_svf_set_rq(	  &(svf[i]), (rqSlew[i]).y );
@@ -141,53 +132,6 @@ static void calc_frame(void) {
   //  mix_voice(voiceOut, out, (const fract16**)mix_osc_dac);
   mix_voice(voiceOut, out, (const fract16*) &(mix_osc_dac[0]);
   mix_adc(in, out, (const fract16**)mix_adc_dac);
-  //  mix_adc();	
-
-#else
-  /* wavesVoice* v; */
-
-  /* for(i=0; i<WAVES_NVOICES; i++) { */
-  /*   v = &(voice[i]); */
-  /*   // oscillator class includes hz and mod integrators */
-  /*   v->oscOut = shr_fr1x32( osc_next( &(v->osc) ), 2); */
-
-  /*   // phase mod with fixed 1-frame delay */
-  /*   osc_pm_in( &(v->osc), v->pmIn ); */
-  /*   // shape mod with fixed 1-frame delay */
-  /*   osc_wm_in( &(v->osc), v->wmIn ); */
-  /*   // process filter integrators and set  */
-
-  /*   slew_exp_calc_frame( v->cutSlew ); */
-  /*   slew_exp_calc_frame( v->rqSlew ); */
-
-  /*   filter_svf_set_coeff( &(v->svf), (v->cutSlew).y ); */
-  /*   filter_svf_set_rq( &(v->svf), (v->rqSlew).y ); */
-
-  /*   // process filter */
-  /*   v->svfOut = filter_svf_next( &(v->svf), shr_fr1x32(v->oscOut, 1) ); */
-  /*   // process amp smoother */
-  /*   //    v->amp  = filter_1p_lo_next( &(v->ampSlew) ); */
-  /*   slew_exp_calc_frame( v->ampSlew ); */
-  /*   v->amp = (v->ampSlew).y; */
-
-  /*   // mix to output bus */
-  /*   v->out = mult_fr1x32x32(v->amp, */
-  /* 			    add_fr1x32(mult_fr1x32x32( v->oscOut, v->fDry), */
-  /* 				       mult_fr1x32x32( v->svfOut, v->fWet) */
-  /* 				       ) */
-  /* 			    ); */
-  /* } // end voice loop */
-
-  /* /// FIXME: later, more voices, mod matrix, arbitrary mod delay. */
-  /* /// for now, simple direct mod feedback routing and 1-frame delay. */
-  /* voice[0].pmIn = voice[1].oscOut; */
-  /* //  voice[0].wmIn = voice[1].oscOut << 1; */
-  /* voice[1].pmIn = voice[0].oscOut; */
-  /* //  voice[1].wmIn = voice[0].oscOut << 1; */
-  
-  /* // mix outputs using matrix */
-  /* mix_outputs(); */
-#endif
   
 }
 
@@ -338,7 +282,7 @@ void module_process_frame(void) {
   //  if(cvSlew[cvChan].sync) { ;; } else {
   //    cvVal[cvChan] = filter_1p_lo_next(&(cvSlew[cvChan]));
   //    dac_update(cvChan, cvVal[cvChan]);
-    //  }
+  //  }
 
   cvVal[cvChan] = filter_1p_lo_next(&(cvSlew[cvChan]));
   dac_update(cvChan, cvVal[cvChan]);

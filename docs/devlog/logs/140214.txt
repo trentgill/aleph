@@ -1,6 +1,7 @@
+aleph-waves optimization (1)
 
-// -----------------------
-// task report
+-----------------------
+---- task report
 
 trying to expand the ceiling on processing in aleph-waves, to add mix points and hopefuly voices. should be applicable to other DSP modules as well.
 
@@ -24,8 +25,8 @@ so, i am writing little assembly units, starting with common things like mixing 
 
 i'll be syncing this work to the exp branch periodically, just as a failsafe, but don't expect things to be working too well at any given time.
 
-//----------------
-// in other news...
+-------------------
+--- in other news...
 
 after an  impressively  short time of tinkering, darren has figured out how to link SRAM to heap! so we have malloc() and free(), finally. 
 
@@ -33,8 +34,8 @@ this will engender some immediate rewrites as we can allocate big temporary buff
 
 in addition, it opens the way for more sophisticated memory structures in future large iterations of BEES or in new applications. with proper memory management we can have true dynamic netowrks as in Pd or Max (but with more "realtimeish" routing manipulation!)
 
-//---------------------
-// thoughts and notes
+---------------------
+--- thoughts and notes
 
 
 - it would be really good to add a software-controlled avr32 reset, both for development (serial bus interruption) and for mid-performance panic without hard power-cycle.

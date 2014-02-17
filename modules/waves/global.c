@@ -1,7 +1,6 @@
 // initialize aleph-waves global variables
 
 #include "osc.h"
-#include "slew.h"
 #include "waves.h"
 
 // oscillator
