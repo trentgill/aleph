@@ -25,10 +25,10 @@ void slew_bank_init(void) {
   fract16* x16 = slew16.x;
   fract16* y16 = slew16.y;
 
-  for(i=0; i<WAVES_SLEW32_COUNT; i++) {
+  for(i=0; i<WAVES_SLEW32_COUNT; ++i) {
     *x32++ = *y32++ = *c32++ = 0;
   }
-  for(i=0; i<WAVES_SLEW16_COUNT; i++) {
+  for(i=0; i<WAVES_SLEW16_COUNT; ++i) {
     *x16++ = *y16++ = *c16++ = 0;
   }
 }
@@ -39,10 +39,10 @@ void slew_bank_32_calc_frame(void) {
   fract32* x = slew32.x;
   fract32* y = slew32.y;
   int i;
-  for(i=0; i<WAVES_SLEW32_COUNT; i++) {
+  for(i=0; i<WAVES_SLEW32_COUNT; ++i) {
     *y = add_fr1x32( *x, mult_fr1x32x32( *c++, sub_fr1x32(*y, *x)));
-    y++;
-    x++;
+    ++y;
+    ++x;
   }
 }
 
@@ -52,10 +52,10 @@ void slew_bank_16_calc_frame(void) {
   fract16* x = slew16.x;
   fract16* y = slew16.y;
   int i;
-  for(i=0; i<WAVES_SLEW16_COUNT; i++) {
+  for(i=0; i<WAVES_SLEW16_COUNT; ++i) {
     *y = add_fr1x16( *x, mult_fr1x16( *c++, sub_fr1x16(*y, *x)));
-    y++;
-    x++;
+    ++y;
+    ++x;
   }
 }
 

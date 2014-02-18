@@ -18,8 +18,10 @@
 // calculate phase incremnet
 static inline void osc_calc_inc( ComplexOsc* osc) {
   //  (osc->lpInc).x = fix16_mul(osc->ratio, fix16_mul(osc->hz, ips) ); 
+
   *(osc->incIn) = fix16_mul(osc->ratio, fix16_mul(osc->hz, OSC_IPS) );
-  
+  /// TEST:
+  osc->inc = fix16_mul(osc->ratio, fix16_mul(osc->hz, OSC_IPS) ); 
 }
 
 // calculate phase
@@ -63,10 +65,14 @@ static inline void osc_calc_pm(ComplexOsc* osc) {
 
 // lookup 
 static inline fract32 osc_lookup(ComplexOsc* osc) {
-  u32 idxA = (*(osc->shape)) >> WAVE_TAB_RSHIFT;
+  //  u32 idxA = (*(osc->shape)) >> WAVE_TAB_RSHIFT;
+  /// TEST:
+  u32 idxA = 0;
   u32 idxB = idxA + 1;
   
-  fract32 mul = shr_fr1x32((fract32)( (*(osc->shape)) & WAVE_SHAPE_MASK), WAVE_TAB_LSHIFT);
+  //  fract32 mul = shr_fr1x32((fract32)( (*(osc->shape)) & WAVE_SHAPE_MASK), WAVE_TAB_LSHIFT);
+  // TEST:
+  fract32 mul = 0;
   fract32 mulInv = sub_fr1x32(FR32_MAX, mul);
   
   return add_fr1x32( 
@@ -83,7 +89,10 @@ static inline fract32 osc_lookup(ComplexOsc* osc) {
 
 // advance phase
 static inline void osc_advance(ComplexOsc* osc) {
-  osc->idx = fix16_add(osc->idx, *(osc->incOut));
+  //  osc->idx = fix16_add(osc->idx, *(osc->incOut));
+  //// TEST:
+  osc->idx = fix16_add(osc->idx, osc->inc);
+
   while(osc->idx > WAVE_TAB_MAX16) { 
     osc->idx = fix16_sub(osc->idx, WAVE_TAB_MAX16);
   }
@@ -109,8 +118,11 @@ void osc_init( ComplexOsc* osc,
 
   osc->incIn = params->incIn;
   osc->incOut = params->incOut;
+
   osc->pmAmt = params->pmAmt;
   osc->shape = params->shape;
+
+  osc->inc = 0x962fc;
 
 }
 

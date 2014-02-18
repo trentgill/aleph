@@ -82,6 +82,7 @@ static void calc_frame(void) {
   static fract32 o;
 
   // calculate slewed parameters
+  //// TEST: don't
   slew_bank_16_calc_frame();
   slew_bank_32_calc_frame();
 
@@ -156,7 +157,9 @@ static void calc_frame(void) {
   //mix_voice(voiceOut, out, (const fract16*) &(mix_osc_dac[0]) );
   out[0] = voiceOut[0];
   out[1] = voiceOut[1];
-  mix_adc(in, out, (const fract16*) &(mix_adc_dac[0]) );
+
+
+  //  mix_adc(in, out, (const fract16*) &(mix_adc_dac[0]) );
   
 }
 

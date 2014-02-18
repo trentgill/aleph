@@ -65,9 +65,12 @@ typedef struct _ComplexOsc {
   // normalized waveshape
   fract16* shape;
   // slew i/o pointers for current phase increment
-  // (weird i know, it is for speed)
+  // (weird i know, trying for speed with slew bank )
   fract32* incIn;
   fract32* incOut;
+
+  //// testing local variable
+  fract32 inc;
 
 } ComplexOsc;
 

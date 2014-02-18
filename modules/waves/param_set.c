@@ -59,7 +59,7 @@ static inline void set_slew16(const int voice, const int param, const ParamValue
   //// FIXME:
   /// integrator coefficients in linear time are such that
   // we are discarding most of the param data this way.
-  // need to add an additional class for 16b audio slew.
+  // need to add an additional class for 16b audio
   slew16.c[voice * WAVES_SLEW16_PER_VOICE + param] = trunc_fr1x32( v );
   // slew16.c[voice * WAVES_SLEW16_PER_VOICE + param] = v;
 }
@@ -70,6 +70,14 @@ static inline void set_slew32(const int voice, const int param, const ParamValue
 }
 
 void module_set_param(u32 idx, ParamValue v) {
+  /// TEST:
+  // don't.
+  if( (idx != eParamHz0) && (idx != eParamHz1) ) {
+    return;
+  }
+  /// 
+
+
   switch(idx) {
 
   /// smoothers have to be processed first!
