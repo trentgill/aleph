@@ -19,39 +19,39 @@ static inline void set_tune(const int id, const ParamValue v) {
 
 //-- voice amp env
 static inline void set_amp(const int id, const ParamValue v) {
-  *(voiceAmpIn[id]) = trunc_fr1x32(v);
+  //  *(voiceAmpIn[id]) = v; //trunc_fr1x32(v);
 }
 
 // waveshape
 static inline void set_shape(const int id, const ParamValue v) {
   // input is [0,1] in 16.16, so just take fract part and discard sign
-  *(shapeIn[id]) = (fract16) ((v & 0x0000ffff) >> 1);
+  //  *(shapeIn[id]) = (fract16) ((v & 0x0000ffff) >> 1);
 }
 
 // phase mod
 static inline void set_pm(const int id, const ParamValue v) {
   // input is [0,1] in 16.16, so just take fract part and discard sign
-  *(pmIn[id]) = (fract16) ((v & 0x0000ffff) >> 1);
+  //  *(pmIn[id]) = (fract16) ((v & 0x0000ffff) >> 1);
 }
 
 // filter cutoff
 static inline void set_cut(const int id, const ParamValue v) {
-  *(svfCutIn[id]) =  v;
+  //  *(svfCutIn[id]) =  v;
 }
 
 // filter rq
 static inline void set_rq(const int id, const ParamValue v) {
-  *(svfRqIn[id]) = v ;
+  //  *(svfRqIn[id]) = v ;
 }
 
 // filter dry
 static inline void set_dry(const int id, const ParamValue v) {
-  *(svfDryIn[id]) = trunc_fr1x32(v);
+  //  *(svfDryIn[id]) = trunc_fr1x32(v);
 }
 
 // filter wet
 static inline void set_wet(const int id, const ParamValue v) {
-  *(svfWetIn[id]) = trunc_fr1x32(v);
+  //  *(svfWetIn[id]) = trunc_fr1x32(v);
 }
 
 // 16b slew param
@@ -61,17 +61,17 @@ static inline void set_slew16(const int voice, const int param, const ParamValue
   // we are discarding most of the param data this way.
   // need to add an additional class for 16b audio
   slew16.c[voice * WAVES_SLEW16_PER_VOICE + param] = trunc_fr1x32( v );
-  // slew16.c[voice * WAVES_SLEW16_PER_VOICE + param] = v;
 }
 
 // 32b slew param
 static inline void set_slew32(const int voice, const int param, const ParamValue v) {
-  slew32.c[voice * WAVES_SLEW32_PER_VOICE + param] = v;
+  slew32.c[ (voice * WAVES_SLEW32_PER_VOICE) + param] = v;
 }
 
 void module_set_param(u32 idx, ParamValue v) {
   /// TEST:
   // don't.
+  /*
   if( (idx != eParamHz0) 
       && (idx != eParamHz1) 
       && (idx != eParamHz0Slew) 
@@ -79,6 +79,7 @@ void module_set_param(u32 idx, ParamValue v) {
       ) {
     return;
   }
+  */
   /// 
 
 
@@ -311,8 +312,6 @@ void module_set_param(u32 idx, ParamValue v) {
     set_dry(0, v);
   case eParam_fdry1 :
     set_dry(1, v);
-
-
 
   // osc parameters
   case  eParamPm0 :

@@ -69,8 +69,8 @@ typedef struct _ComplexOsc {
   fract32* incIn;
   fract32* incOut;
 
-  //// testing local variable
-  fract32 inc;
+  //// testing with member variable
+  //  fract32 inc;
 
 } ComplexOsc;
 

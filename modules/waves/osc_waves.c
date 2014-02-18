@@ -21,7 +21,7 @@ static inline void osc_calc_inc( ComplexOsc* osc) {
 
   *(osc->incIn) = fix16_mul(osc->ratio, fix16_mul(osc->hz, OSC_IPS) );
   /// TEST:
-  osc->inc = fix16_mul(osc->ratio, fix16_mul(osc->hz, OSC_IPS) ); 
+  //  osc->inc = fix16_mul(osc->ratio, fix16_mul(osc->hz, OSC_IPS) ); 
 }
 
 // calculate phase
@@ -126,8 +126,9 @@ void osc_init( ComplexOsc* osc,
   osc->pmAmt = params->pmAmt;
   osc->shape = params->shape;
     
-
-  osc->inc = 0x962fc;
+  
+  // TEST: 440hz
+  //  osc->inc = 0x962fc;
 
 }
 
