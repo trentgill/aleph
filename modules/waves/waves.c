@@ -81,6 +81,11 @@ static void calc_frame(void) {
   static u8 i;
   static fract32 o;
 
+  // calculate slewed parameters
+  slew_bank_16_calc_frame();
+  slew_bank_32_calc_frame();
+
+  
   // mix modulation input
   //  mix_mod();
 
@@ -156,6 +161,13 @@ void module_init(void) {
   gModuleData->paramData = data->mParamData;
   gModuleData->numParams = eParamNumParams;
 
+  // init parameter slew
+  slew_bank_init();
+  // init oscillators
+  init_osc();
+  // init additional param slew pointers
+  init_param_slew();
+
   for(i=0; i<WAVES_VOICE_COUNT; i++) {
     //    fract32 tmp = FRACT32_MAX >> 2;
 
@@ -167,6 +179,8 @@ void module_init(void) {
     /* slew_exp_init(rqSlew[i], PARAM_RQ_DEFAULT); */
     
   }
+
+
 
   // dac
   filter_1p_lo_init( &(cvSlew[0]), 0xf );
@@ -185,11 +199,7 @@ void module_init(void) {
   param_setup(  eParamAmp0, 	PARAM_AMP_6 );
   param_setup(  eParamPm0, 	0 );
   param_setup(  eParamPm1, 	0 );
-  /* param_setup(  eParamWm10, 	0 ); */
-  /* param_setup(  eParamWm01, 	0 ); */
-  /* param_setup(  eParamBl1,  	0 ); */
-  /* param_setup(  eParamBl0,  	0 ); */
-
+ 
   param_setup(  eParam_cut1,	PARAM_CUT_DEFAULT);
   param_setup(  eParam_rq1,	PARAM_RQ_DEFAULT);
   param_setup(  eParam_low1,       PARAM_AMP_6 );
@@ -211,8 +221,7 @@ void module_init(void) {
   param_setup(  eParamHz0Slew, PARAM_SLEW_DEFAULT );
   param_setup(  eParamPm0Slew, 	PARAM_SLEW_DEFAULT );
   param_setup(  eParamPm1Slew, 	PARAM_SLEW_DEFAULT );
-  /* param_setup(  eParamWm10Slew, 	PARAM_SLEW_DEFAULT ); */
-  /* param_setup(  eParamWm01Slew, 	PARAM_SLEW_DEFAULT ); */
+
   param_setup(  eParamWave1Slew, PARAM_SLEW_DEFAULT );
   param_setup(  eParamWave0Slew, PARAM_SLEW_DEFAULT );
   param_setup(  eParamAmp1Slew, 	PARAM_SLEW_DEFAULT );
@@ -278,6 +287,7 @@ void module_process_frame(void) {
   //    dac_update(cvChan, cvVal[cvChan]);
   //  }
 
+  // update one channel per sample... so, effective SR is 12khz...
   cvVal[cvChan] = filter_1p_lo_next(&(cvSlew[cvChan]));
   dac_update(cvChan, cvVal[cvChan]);
   cvChan = (cvChan + 1) & 0x3;
