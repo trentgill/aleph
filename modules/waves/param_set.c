@@ -72,7 +72,11 @@ static inline void set_slew32(const int voice, const int param, const ParamValue
 void module_set_param(u32 idx, ParamValue v) {
   /// TEST:
   // don't.
-  if( (idx != eParamHz0) && (idx != eParamHz1) ) {
+  if( (idx != eParamHz0) 
+      && (idx != eParamHz1) 
+      && (idx != eParamHz0Slew) 
+      && (idx != eParamHz1Slew) 
+      ) {
     return;
   }
   /// 

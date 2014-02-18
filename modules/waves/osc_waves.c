@@ -89,9 +89,9 @@ static inline fract32 osc_lookup(ComplexOsc* osc) {
 
 // advance phase
 static inline void osc_advance(ComplexOsc* osc) {
-  //  osc->idx = fix16_add(osc->idx, *(osc->incOut));
+  osc->idx = fix16_add(osc->idx, *(osc->incOut));
   //// TEST:
-  osc->idx = fix16_add(osc->idx, osc->inc);
+  // osc->idx = fix16_add(osc->idx, osc->inc);
 
   while(osc->idx > WAVE_TAB_MAX16) { 
     osc->idx = fix16_sub(osc->idx, WAVE_TAB_MAX16);
@@ -106,6 +106,9 @@ void osc_init( ComplexOsc* osc,
 		      wavtab_t tab, 
 		      ComplexOsc_params* params
 		      ) {
+
+  
+
   osc->tab = tab;
 
   osc->val = 0;
@@ -119,8 +122,10 @@ void osc_init( ComplexOsc* osc,
   osc->incIn = params->incIn;
   osc->incOut = params->incOut;
 
+    
   osc->pmAmt = params->pmAmt;
   osc->shape = params->shape;
+    
 
   osc->inc = 0x962fc;
 
