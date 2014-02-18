@@ -57,14 +57,13 @@ typedef struct _ComplexOsc {
   // modulated phase
   fix16 idxMod;
 
-  // phase modulation amount [0-1)
-  fract16 pmAmt;
-  // normalized waveshape
-  fract16 shape;
-
   //--- parameters and busses accessed by pointer
+  // phase modulation amount [0-1)
+  fract16* pmAmt;
   // phase mod input bus
-  fract16* pmModBus;
+  fract16* pmBus;
+  // normalized waveshape
+  fract16* shape;
   // slew i/o pointers for current phase increment
   // (weird i know, it is for speed)
   fract32* incIn;
@@ -76,14 +75,16 @@ typedef struct _ComplexOsc {
 typedef struct _ComplexOsc_params {
   fract32* incIn;
   fract32* incOut;
-  fract16* phaseModIn;
+  fract16* pmBus;
+  fract16* pmAmt;
+  fract16* shape;
 } ComplexOsc_params;
 
 // initialize given table data, 
 /// pointers to parameter smoothing i/o
 extern void osc_init( ComplexOsc* osc, 
 		      wavtab_t tab, 
-		      ComplexOsc_params* params,
+		      ComplexOsc_params* params
 		     );
 
 // set base frequency in hz

@@ -12,8 +12,8 @@
 #include <fract_math.h>
 #include "slew_bank.h"
 
-extern SlewBank32 slew32;
-extern SlewBank16 slew16;
+SlewBank32 slew32;
+SlewBank16 slew16;
 
 // intitialize all state variables for both smoother banks
 void slew_bank_init(void) {

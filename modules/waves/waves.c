@@ -160,7 +160,7 @@ void module_init(void) {
   gModuleData->numParams = eParamNumParams;
 
   for(i=0; i<WAVES_VOICE_COUNT; i++) {
-    fract32 tmp = FRACT32_MAX >> 2;
+    //    fract32 tmp = FRACT32_MAX >> 2;
 
     filter_svf_init( &(svf[i]) );
     //    voiceAmp[i] = tmp;
@@ -287,4 +287,4 @@ void module_process_frame(void) {
   
 }
 
-#include "param_set.c"
+//#include "param_set.c"

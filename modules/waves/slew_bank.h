@@ -62,6 +62,7 @@ typedef struct _slewBank32 {
 
 /* // 16-bit (max slew is ~1s at audio sampling rate) */
 typedef struct _slewBank16 {
+  // count should be even for alignment!
   fract16 c[WAVES_SLEW16_COUNT];
   fract16 x[WAVES_SLEW16_COUNT];
   fract16 y[WAVES_SLEW16_COUNT];
