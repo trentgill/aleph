@@ -37,6 +37,8 @@ char str[64] = "aleph-";
 #define MAXBYTES 0x100000
 char buf[MAXBYTES];
 
+ParamDesc desc[NUM_PARAMS];
+
 //--------------------
 //---- static func
 //void fill_param_desc(void);

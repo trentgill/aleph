@@ -138,27 +138,33 @@ enum params {
   eParam_cvVal1,
   eParam_cvVal0,
 
+  // filter 0
+  eParam_cut0,
+  eParam_rq0,
+
   // filter 1
   eParam_cut1,		
   eParam_rq1,		
 
+  //// FIXME: might remove mode blending
   eParam_low1,		
   eParam_high1,		
   eParam_band1,		
   eParam_notch1,	
-  eParam_fwet1,		
-  eParam_fdry1,		
-
-  // filter 0
-  eParam_cut0,
-  eParam_rq0,
 
   eParam_low0,		
   eParam_high0,		
   eParam_band0,		
   eParam_notch0,	
+
+  eParam_fwet1,		
+  eParam_fdry1,		
+
+
   eParam_fwet0,		
   eParam_fdry0,		
+
+
 
   // osc parameters
   eParamPm0,

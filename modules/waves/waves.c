@@ -55,7 +55,7 @@ static wavesData * data;
 
 /// FIXME: wavetables are statically linked constants for now.
 /// would like to have them in SDRAM and allow arbitrary asynchronous load.
- const fract32 wavtab[WAVE_TAB_NUM][WAVE_TAB_SIZE] = { 
+const fract32 wavtab[WAVE_TAB_NUM][WAVE_TAB_SIZE] = { 
 #include "wavtab_data_inc.c" 
 };
 
@@ -95,7 +95,7 @@ static void calc_frame(void) {
     //    osc_pm_in( &(osc[i]), pmIn[i] );
 
     // calculate oscillator output
-    o = oscOut[i] = shr_fr1x32( osc_next( &(osc[i]) ), 1);    
+    o = oscOut[i] = shr_fr1x32( osc_next( &(osc[i]) ), 1);
 
     // process SVF param integrators
     //    slew_exp_calc_frame( cutSlew[i] );
@@ -121,7 +121,15 @@ static void calc_frame(void) {
     /* 					     mult_fr1x32( svfOut[i], 0x7fff ) */
     /* 					     ) */
     /* 				  ); */
-    
+
+    /*    
+
+
+
+
+
+//////////
+//////////////
     voiceOut[i] = mult_fr1x32x32(
 				 *(voiceAmpOut[i]),
 				  add_fr1x32(
@@ -135,13 +143,19 @@ static void calc_frame(void) {
 							  )
 					     )
 				  );
+    */
+
+    //// TEST
+    voiceOut[i] = oscOut[i];
   }
 
   // mix outputs
   out[0] = out[1] = out[2] = out[3] = 0;
 
   //  mix_voice(voiceOut, out, (const fract16**)mix_osc_dac);
-  mix_voice(voiceOut, out, (const fract16*) &(mix_osc_dac[0]) );
+  //mix_voice(voiceOut, out, (const fract16*) &(mix_osc_dac[0]) );
+  out[0] = voiceOut[0];
+  out[1] = voiceOut[1];
   mix_adc(in, out, (const fract16*) &(mix_adc_dac[0]) );
   
 }
@@ -163,6 +177,7 @@ void module_init(void) {
 
   // init parameter slew
   slew_bank_init();
+
   // init oscillators
   init_osc();
   // init additional param slew pointers

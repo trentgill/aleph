@@ -25,18 +25,18 @@ static inline void set_amp(const int id, const ParamValue v) {
 // waveshape
 static inline void set_shape(const int id, const ParamValue v) {
   // input is [0,1] in 16.16, so just take fract part and discard sign
-  *(shapeIn[id]) = v >> 1;
+  *(shapeIn[id]) = (fract16) ((v & 0x0000ffff) >> 1);
 }
 
 // phase mod
 static inline void set_pm(const int id, const ParamValue v) {
   // input is [0,1] in 16.16, so just take fract part and discard sign
-  *(pmIn[id]) = (v & 0x0000ffff) >> 1;
+  *(pmIn[id]) = (fract16) ((v & 0x0000ffff) >> 1);
 }
 
 // filter cutoff
 static inline void set_cut(const int id, const ParamValue v) {
-  *(svfCutIn[id]) =  (v & 0x0000ffff) >> 1;
+  *(svfCutIn[id]) =  v;
 }
 
 // filter rq
@@ -55,13 +55,18 @@ static inline void set_wet(const int id, const ParamValue v) {
 }
 
 // 16b slew param
-static inline void set_slew16(const int voice, const int param, const fract16 v) {
-  slew16.c[voice * WAVES_SLEW16_PER_VOICE + param] = v;
+static inline void set_slew16(const int voice, const int param, const ParamValue v) {
+  //// FIXME:
+  /// integrator coefficients in linear time are such that
+  // we are discarding most of the param data this way.
+  // need to add an additional class for 16b audio slew.
+  slew16.c[voice * WAVES_SLEW16_PER_VOICE + param] = trunc_fr1x32( v );
+  // slew16.c[voice * WAVES_SLEW16_PER_VOICE + param] = v;
 }
 
 // 32b slew param
-static inline void set_slew32(const int voice, const int param, const fract32 v) {
-  slew16.c[voice * WAVES_SLEW32_PER_VOICE + param] = v;
+static inline void set_slew32(const int voice, const int param, const ParamValue v) {
+  slew32.c[voice * WAVES_SLEW32_PER_VOICE + param] = v;
 }
 
 void module_set_param(u32 idx, ParamValue v) {
