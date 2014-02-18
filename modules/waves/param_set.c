@@ -3,6 +3,59 @@
 
 // set param values.
 
+//-- hz
+static inline void set_hz(const int id, const ParamValue v) {
+  osc_set_hz ( &(osc[id]), v );
+}
+
+//-- tune
+static inline void set_tune(const int id, const ParamValue v) {
+  osc_set_tune ( &(osc[id]), v );
+}
+
+//-- voice amp env
+static inline void set_amp(const int id, const ParamValue v) {
+  *(voiceAmpIn[id]) = trunc_fr1x32(v);
+}
+
+// waveshape
+static inline void set_shape(const int id, const ParamValue v) {
+  // input is [0,1] in 16.16, so just take fract part and discard sign
+  *(shapeIn[id]) = v >> 1;
+}
+
+// phase mod
+static inline void set_pm(const int id, const ParamValue v) {
+  // input is [0,1] in 16.16, so just take fract part and discard sign
+  *(pmIn[id]) = (v & 0x0000ffff) >> 1;
+}
+
+// filter cutoff
+static inline void set_cut(const int id, const ParamValue v) {
+  *(svfCut[id]) =  (v & 0x0000ffff) >> 1;
+}
+
+// filter rq
+static inline void set_cut(const int id, const ParamValue v) {
+  *(svfRq[id]) = v ;
+}
+
+// filter dry
+static inline void set_amp(const int id, const ParamValue v) {
+  *(svfDryIn[id]) = trunc_fr1x32(v);
+}
+
+// filter wet
+static inline void set_amp(const int id, const ParamValue v) {
+  *(svfWetIn[id]) = trunc_fr1x32(v);
+}
+
+
+void module_set_param(u32 idx, ParamValue v) {
+  
+}
+
+/*
 void module_set_param(u32 idx, ParamValue v) {
 
 #if 0
@@ -289,3 +342,5 @@ void module_set_param(u32 idx, ParamValue v) {
 
 #endif
 }
+
+*/
