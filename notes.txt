@@ -1,0 +1,51 @@
+http://www.levien.com/type/myfonts/inconsolata.html
+
+
+usb sniffing
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+usbmon
+
+http://lxr.linux.no/linux+v2.6.28.8/Documentation/usb/usbmon.txt
+
+modprobe usbmon
+
+cat /sys/kernel/debug/usb/usbmon/2u
+
+
+usb joystick
+
+apt-get install joystick
+
+jstest /dev/input/js0
+
+
+
+ftdi info
+
+http://lxr.linux.no/linux+v2.6.28.7/drivers/usb/serial/ftdi_sio.h#L1334
+
+
+
+
+random notes
+:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+
+http://docs.blackfin.uclinux.org/doku.php?id=hw:checklist
+
+audio pots http://tangentsoft.net/audio/atten.html
+general http://tangentsoft.net/audio/
+
+
+http://stompville.co.uk/?p=470
+
+balanced
+	AD8476 balanced line driver
+	http://www.uneeda-audio.com/zbal.htm
+	http://www.harmonycentral.com/t5/Lessons-Theory/Balanced-Vs-Unbalanced-I-O-How-It-Works/ba-p/34639794
+
+
+	USB -> AVR?
+		http://www.makestuff.eu/wordpress/electronics/nanduino/usb-messaging/
+		http://pyusb.sourceforge.net/docs/1.0/tutorial.html
+		http://tuxgraphics.org/electronics/200901/tuxgraphics-isp-header.shtml

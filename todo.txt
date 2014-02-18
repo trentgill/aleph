@@ -1,0 +1,153 @@
+e todo
+:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+
+BEES
+
+- rendering
+  reconcile with new region-based screen system
+
+- check scene recall
+  - memory allocation bug probably culprit but need test
+  - need serialization of op data, etc,
+    to keep scene recall working between builds...
+
+- operators 
+  - arbitrary string drawing to param field for UI param changes
+  - edit page
+  - scaler op
+  - metro op
+  - list op
+  
+
+
+CONTROL
+
+- midi management
+
+- audio load/stream
+  - more investigations: streaming from sd card is so totally doable.
+
+- aleph/host communication 
+  - at the very least, report bfin params to host 
+    and accept direct parameter changes
+  - probably also some way for apps to define custom host control handles   
+
+- malloc
+  - fix the fucking memory map / link options to assign SRAM to heap section.
+    i tried and failed at this once before, could use a fresh set of eyes
+
+
+
+DSP
+
+- mono/poly
+  - add filter
+  - add envelope routing /scaling
+    probably just one env with separate scaling // offset? hm
+  - more / better wavetables and/or shaping
+
+- grain engine
+  - fill-buffer for grains
+
+- noise
+  - large bank of chaotic maps
+  - envelopes / integrators
+
+- lines
+  - "crossfade" on position change
+    ( ramp between pre/write values )
+
+- dsyn
+  - short delays would be good
+  - use audio inputs more interestingly
+    (ex: 3/4 for saturation/feedback within the filter structure)
+
+- "sampler"
+  - ???
+  
+- analysis
+  - fft (see AD example project)
+    - crude pitch detection (peak bin) is probably enough
+    - centroid (weighted avg of bins)
+    - whiteness (distribution of bins)
+    
+- phys. modelling
+  - K-S / coupled oscillation with analog feedback path
+  - waveguide
+
+
+
+
+:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+ b todo
+:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+
+
+post-announcement todo
+
+followup details
+	pulled from forum responses
+	post photo
+
+new video
+	loop cutting
+	cv out
+		gamepad?
+
+production
+	POs to RLC
+	POs to mcalpin
+
+build
+	new face
+	primary existing
+	fix files primary and order
+	fix cv on proto
+	check mechanicals
+		# mechanicals eval plus photos
+		backplate corrections
+		keycap fix on plate
+		enclosure needs standoffs
+	knob/keycap
+
+programming
+	lppr grid xtras?
+	BEES
+	interface scrub
+	monome apps
+		flin
+		life
+	avr32
+		node mixer 4in/4out using /lines/
+			per output
+				input mix per channel
+				dry pass
+				delay ms
+				filter
+					mode
+					cutoff
+					resonance
+				wet pass
+				level
+	i2c
+	usb communication to laptop, basic param exchange
+	serial host via computer
+		osc
+		midi
+		remote
+
+packaging - giffin				
+ii kit
+
+
+
+new video (loop cutter w/ 64, cv out, gamepad, midi keys, synth) several, not just one vid, spread out
+accounting, payroll, projections-- more details after meeting on wednesday
+proto building-- new face, new primary, final checks 
+mechanical-- fixes/updates to metal parts, knob/key
+packaging w/ giffin
+final part sourcing (sdcards)
+programming-- monome apps, interface assist, bees assist, dsp assist, i2c
+host serial communication-- laptop-based editor-- talk to peter? serial to osc.
+production management-- get manufacturers started
+production process-- how to make stuff here

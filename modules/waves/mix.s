@@ -25,6 +25,33 @@ _mix_mod:
 	.size	_mix_mod, .-_mix_mod
 	.align 4
 	
+<<<<<<< HEAD
+=======
+.global _mix_voice_fake;
+.type _mix_voice_fake, STT_FUNC;
+_mix_voice_fake:
+	LINK 0
+	[--sp] = (r7:4) 	;
+	// i/o arrays
+	p1 = r0			; 
+	p2 = r1 		;
+	// mix array
+	p3 = r3			;
+	
+	// sum the 2 input values
+	r7 = [p1++]		;
+	r6 = [p1]		;
+	r7 = r7 + r6 (S) 	;
+	
+	// loop over outputs
+	p4 = 4			;
+	loop lp_outs lc0=p4	;
+	loop_begin lp_outs	;
+		r5 = [p2]		;
+		r4 = r5 + r7 (S)	;
+		[p2++] = r4		;
+	loop_end lp_outs	;
+>>>>>>> db6b0d959233f899403d8df3792f9d5831ec5f60
 
 ////////////////////////////////
 /*
@@ -47,6 +74,7 @@ _mix_voice:
 	// mix array
 	p3 = r2			;	
 	// loop over voices
+<<<<<<< HEAD
 	//// FIXME: HW loop too much overhead?
 	p2 = 2			;
 	loop mix_voice_lp_in lc1 = p2	;
@@ -74,6 +102,28 @@ _mix_voice:
 	loop_end mix_voice_lp_in	;
 	// pop stack and return
 	(r7:4, p5:1) = [sp++] 	;
+=======
+	p5 = 2			;
+	loop lp_ins lc1=p5	;
+	loop_begin lp_ins	;
+	// load input value
+	r7 = [p1++]		;
+	// loop over outputs
+	p4 = 4			;
+	loop lp_outs lc0=p4	;
+	loop_begin lp_outs	;
+	// load mix multiplier
+	r6 = [p3++]		;
+	// multiply input by mix
+	r5 = r7.h * r6.h 	;
+	// load current output bus value
+	r4 = [p2]			;
+	// add scaled value to output and store
+	r3 = r4 + r5 (S)	;
+	[p2++] = r3		;
+	loop_end lp_outs	;
+	(r7:4) = [sp++] 	;
+>>>>>>> db6b0d959233f899403d8df3792f9d5831ec5f60
 	UNLINK;
 	rts;
 	

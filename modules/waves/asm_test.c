@@ -26,7 +26,18 @@ void mul16x16(fract32* o, fract16* a, fract16* b) {
 }
 
 
+typedef struct {
+  int buf [8];
+  char str[8];
+} bigData_t;
 
+extern bigData_t bigData;
+bigData_t bigData = { 
+  .buf = { 0, 0, 0, 0, 0, 0, 0, 0 },
+    .str = "stringy"
+};  
+
+<<<<<<< HEAD
 
 
 void mix (fract32* out, const fract32* in, const fract16* mix, int incount, int outcount) {
@@ -60,3 +71,29 @@ void mix_voice (fract32* out, const fract32* in, const fract16* mix) {
     pIn++;
   }
 }
+=======
+void copy(int n) {
+  int i;
+  for(i=0; i<n; i++) {
+    globalCount = i;
+    staticBuf[i] = globalBuf[i];
+  }
+} 
+
+void copy_args(int* a, const int* b, const int n) {
+  int i;
+  for(i=0; i<n; i++) {
+    a[i] = b[i];
+  }
+} 
+
+void copy_struct(int n) {
+  int i;
+  for(i=0; i<n; i++) {
+    if(n < 8) {
+      staticBuf[i] = bigData.buf[i];
+    }
+  }
+} 
+
+>>>>>>> db6b0d959233f899403d8df3792f9d5831ec5f60

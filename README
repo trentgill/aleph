@@ -4,6 +4,10 @@ aleph.
 
 
 :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+<<<<<<< HEAD
+HOW IT WORKS:
+
+=======
 :::: quick start
 
 is there an sdcard in it? there should be... then try:
@@ -28,6 +32,7 @@ and you may need to lower the baudrate.
 
 :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 :::: device description
+>>>>>>> 1944be31d4d35face9386084a9133a8e481dbca2
 
 ----------------------------
 ------ hardware:
@@ -57,6 +62,26 @@ this bootloader is capable of flashing the internal memory with a new executable
 ----------------------------------
 ---- software:
 
+<<<<<<< HEAD
+aleph will ship with a controller application called BEES. this is a relatively large and complex program designed to be as general-purpose as possible. it can arbitrarily and dynamically route and process control rate input, mangage multiple audio modules, store and recall configurations from sdcard.
+
+but for some users and applications, it may make more sense to use or develop a single-purpose application (e.g. a loop pedal, monosynth, or some exotic experiment.) to encourage this kind of work, we will try to provide a relatively high-level API over the layers of software that communicate with the various hardware peripherals attached to the controller. the app developer will presented with a simple event callback for handling UI or controller input, and an array of functions for sending data to the dsp, to the screen, or to attached digital devices such as monomes, laptops, midi devices, and other alephs.
+
+the dsp side of the aleph presents another area of extendability. the different audio modules are similarly simple, building on both a hardware-specific firmware layer and a library of abstract fixed-point audio processors.
+
+
+:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+CODE ORGANIZATION : 
+
+-----------------------
+----- controller :
+
+aleph/avr32/src : 
+	contains default low-level routines specific to the Aleph hardware.
+	application authors can use these sources, or replace them with their own as desired.
+
+aleph/asf-x.x.x :
+=======
 aleph will ship with a controller application called BEES. 
 this is a relatively large and complex program designed to be as general-purpose as possible. 
 it can arbitrarily and dynamically route and process control rate input, mangage multiple audio modules, 
@@ -86,6 +111,7 @@ aleph/avr32_lib/src
 	application authors can use these sources, or replace them with their own as desired.
 
 aleph/avr32_lib/asf-x.x.x :
+>>>>>>> 1944be31d4d35face9386084a9133a8e481dbca2
 	a copy of the Atmel Software Framework.	
 	this contains low-level drivers and utilies provided by Atmel, lightly modified by us.
 
@@ -101,6 +127,15 @@ aleph/common :
 	routines that both the dsp and the controller need to agree on.
 	this includes the SPI protocol and fixed-point math routines.
 
+<<<<<<< HEAD
+aleph/avr32_boot  : 
+	avr32 bootloader and hardware test program.
+
+---------------------
+----- dsp :
+
+aleph/bfin/src:	
+=======
 aleph/utils/avr32_boot  : 
 	avr32 bootloader and hardware test program.
 
@@ -108,19 +143,33 @@ aleph/utils/avr32_boot  :
 ---- dsp :
 
 aleph/bfin_lib/src:	
+>>>>>>> 1944be31d4d35face9386084a9133a8e481dbca2
 	low-level sources for audio programs.
 	these routines interact with the blackfin hardware directly, 
 	and should be changed only with great care to avoid damaging the proces
 
+<<<<<<< HEAD
+aleph/bfin/modules :
+	contains a number of project directories for specific audio modules.
+	
+aleph/audio : 
+	common audio functions implemented in fixed-point for speed on the blackfin,
+=======
 aleph/modules :
 	contains a number of project directories for specific audio modules.
 	
 aleph/dsp : 
 	common audio functions implemented in 32-bit fixed-point,
+>>>>>>> 1944be31d4d35face9386084a9133a8e481dbca2
 	(envelopes, filters, buffers, oscillators, etc);
 	these should be freely added to as needed by new modules.	
 	currently there is no rigid class structure to these things, but we could impose one.
 
+<<<<<<< HEAD
+aleph/null : 
+	a portaudio-based audio wrapper, 
+	suitable for preliminary development of new audio modules.
+=======
 aleph/dsp/null : 
 	a clunky little portaudio-based audio wrapper, 
 	suitable for preliminary development of new audio modules.
@@ -218,3 +267,4 @@ of course you can use a different location if you like.
 you probably also want to add the path to your .bashrc or whatever.
 
 you should now be able to run 'make' from aleph/modules/lines or any other module.
+>>>>>>> 1944be31d4d35face9386084a9133a8e481dbca2

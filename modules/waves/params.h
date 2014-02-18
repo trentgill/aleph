@@ -69,28 +69,21 @@ enum params {
   /// smoothers have to be processed first!
   eParamAmp0Slew,
   eParamAmp1Slew,
+
   eParamHz0Slew,
   eParamHz1Slew,
+
   eParamWave0Slew,
   eParamWave1Slew,
-  eParamPm10Slew,
-  eParamPm01Slew,
-  eParamWm10Slew,
-  eParamWm01Slew,
+
+  eParamPm0Slew,
+  eParamPm1Slew,
 
   eParamCut0Slew,
   eParamRq0Slew,
-  eParamLow0Slew,
-  eParamHigh0Slew,
-  eParamBand0Slew,
-  eParamNotch0Slew,
 
   eParamCut1Slew,
   eParamRq1Slew,
-  eParamLow1Slew,
-  eParamHigh1Slew,
-  eParamBand1Slew,
-  eParamNotch1Slew,
 
   eParamDry0Slew,
   eParamWet0Slew,
@@ -147,6 +140,7 @@ enum params {
   // filter 1
   eParam_cut1,		
   eParam_rq1,		
+
   eParam_low1,		
   eParam_high1,		
   eParam_band1,		
@@ -157,6 +151,7 @@ enum params {
   // filter 0
   eParam_cut0,
   eParam_rq0,
+
   eParam_low0,		
   eParam_high0,		
   eParam_band0,		
@@ -165,18 +160,8 @@ enum params {
   eParam_fdry0,		
 
   // osc parameters
-
-  eParamFmDel0,
-  eParamFmDel1,
-
-   eParamBl1,
-  eParamBl0,
-
-  eParamWm10,
-  eParamWm01,
-
-  eParamPm10,
-  eParamPm01,
+  eParamPm0,
+  eParamPm1,
 
   eParamWave1,
   eParamWave0,

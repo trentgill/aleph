@@ -59,13 +59,10 @@ static wavesData * data;
 #include "wavtab_data_inc.c" 
 };
 
-/// FIXME
-// static fract32 frameVal;
-
 // 10v dac values (u16, but use fract32 and audio integrators, for now)
-static fract32 cvVal[4];
-static filter_1p_lo cvSlew[4];
-static u8 cvChan = 0;
+fract32 cvVal[4];
+filter_1p_lo cvSlew[4];
+u8 cvChan = 0;
 
 //----------------------
 //----- static function declaration
@@ -186,12 +183,12 @@ void module_init(void) {
   param_setup(  eParamWave0, 	0 );
   param_setup(  eParamAmp1, 	PARAM_AMP_6 );
   param_setup(  eParamAmp0, 	PARAM_AMP_6 );
-  param_setup(  eParamPm10, 	0 );
-  param_setup(  eParamPm01, 	0 );
-  param_setup(  eParamWm10, 	0 );
-  param_setup(  eParamWm01, 	0 );
-  param_setup(  eParamBl1,  	0 );
-  param_setup(  eParamBl0,  	0 );
+  param_setup(  eParamPm0, 	0 );
+  param_setup(  eParamPm1, 	0 );
+  /* param_setup(  eParamWm10, 	0 ); */
+  /* param_setup(  eParamWm01, 	0 ); */
+  /* param_setup(  eParamBl1,  	0 ); */
+  /* param_setup(  eParamBl0,  	0 ); */
 
   param_setup(  eParam_cut1,	PARAM_CUT_DEFAULT);
   param_setup(  eParam_rq1,	PARAM_RQ_DEFAULT);
@@ -212,10 +209,10 @@ void module_init(void) {
 
   param_setup(  eParamHz1Slew, PARAM_SLEW_DEFAULT );
   param_setup(  eParamHz0Slew, PARAM_SLEW_DEFAULT );
-  param_setup(  eParamPm10Slew, 	PARAM_SLEW_DEFAULT );
-  param_setup(  eParamPm01Slew, 	PARAM_SLEW_DEFAULT );
-  param_setup(  eParamWm10Slew, 	PARAM_SLEW_DEFAULT );
-  param_setup(  eParamWm01Slew, 	PARAM_SLEW_DEFAULT );
+  param_setup(  eParamPm0Slew, 	PARAM_SLEW_DEFAULT );
+  param_setup(  eParamPm1Slew, 	PARAM_SLEW_DEFAULT );
+  /* param_setup(  eParamWm10Slew, 	PARAM_SLEW_DEFAULT ); */
+  /* param_setup(  eParamWm01Slew, 	PARAM_SLEW_DEFAULT ); */
   param_setup(  eParamWave1Slew, PARAM_SLEW_DEFAULT );
   param_setup(  eParamWave0Slew, PARAM_SLEW_DEFAULT );
   param_setup(  eParamAmp1Slew, 	PARAM_SLEW_DEFAULT );

@@ -1,0 +1,68 @@
+aleph.
+
+1. processor/synth. sound/audio computer.
+2. expansive i/o. connected.
+3. modular operating system. dynamic control patching.
+4. open source.
+
+
+
+a music computer. open source noise device.
+
+
++ dynamic program. 
+	echo, synth, filter, drum machine, etc.
+	open source = user designed, community driven
+	sdcard
+
++ flexible interface
+	four encoders, four keys, two footswitch
+	CV input and output, 10V
+	screen
+	usb device = computer communication
+	usb host
+		hid midi = keyboard, knob box, drum pad, MIDI ports
+		monomes
+	inter-device communication = i2c (needs a name?)
+
++ adaptable interaction.
+	complex or simple program interface
+	assignable parameter mapping
+	parameter transformation, automation, sequencing
+	preset
+	
++ audio
+	high fidelity audio i/o
+	gain stages with LED meters
+	quad outputs and inputs
+		individual outs for drum/synth/loop voices
+		analog inserts
+
+
+video:
+
+1. viola and mic input, echo patch, foot pedals, analog insert path (filter?)
+2. eurorack and gamepad, bees sequencer or something
+3. aleph with usb midi keyboard playing polyphonic synth
+4. monome grid with aleph drum machine
+
+
+sketches/images of suggested use:
+
+processor
+	viola and mic input, echo patch, foot pedals	
+advanced processor
+	viola and mic input, echo patch, foot pedals, analog insert path, CV light controller/etc	
+drum machine
+drum machine w/ usb controller
+drum machine w/ two alephs via i2c
+synth
+synth w/ usb controller
+synth controlled by computer
+synth w/ analog insert path
+synth w/ analog insert path w/ sync CV output params
+synth w/ CV input
+sequencer w/ CV output
+sequencer plus synth/drum/processor
+control operations
+remote i2c control (arduino/etc for sensor expansion), i2c daisy chain

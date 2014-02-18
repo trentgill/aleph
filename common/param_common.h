@@ -1,4 +1,3 @@
-
 /* param_common.h
  * aleph-common
  * 
@@ -11,6 +10,17 @@
 #include "fix.h"
 #include "types.h"
 
+
+//======@@@@@@@++++++########!!!!!!!
+//!!!!!!====== BEWARE !!!!!!********
+/// there are all kinds of dirty hacks 
+/// dependent on the layout of data types in this header:
+///// in the bytecount #defines in protocol.h
+///// in param.c:get_param_value
+/////____change the layouts only with extraordinary caution!!! _ez
+
+// max characters in param name
+#define PARAM_LABEL_LEN 16
 // max characters in param name
 #define PARAM_LABEL_LEN 16
 
