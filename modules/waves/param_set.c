@@ -19,39 +19,39 @@ static inline void set_tune(const int id, const ParamValue v) {
 
 //-- voice amp env
 static inline void set_amp(const int id, const ParamValue v) {
-  //  *(voiceAmpIn[id]) = v; //trunc_fr1x32(v);
+  *(voiceAmpIn[id]) = v; //trunc_fr1x32(v);
 }
 
 // waveshape
 static inline void set_shape(const int id, const ParamValue v) {
   // input is [0,1] in 16.16, so just take fract part and discard sign
-  //  *(shapeIn[id]) = (fract16) ((v & 0x0000ffff) >> 1);
+  *(shapeIn[id]) = (fract16) ((v & 0x0000ffff) >> 1);
 }
 
 // phase mod
 static inline void set_pm(const int id, const ParamValue v) {
   // input is [0,1] in 16.16, so just take fract part and discard sign
-  //  *(pmIn[id]) = (fract16) ((v & 0x0000ffff) >> 1);
+   *(pmIn[id]) = (fract16) ((v & 0x0000ffff) >> 1);
 }
 
 // filter cutoff
 static inline void set_cut(const int id, const ParamValue v) {
-  //  *(svfCutIn[id]) =  v;
+  *(svfCutIn[id]) =  v;
 }
 
 // filter rq
 static inline void set_rq(const int id, const ParamValue v) {
-  //  *(svfRqIn[id]) = v ;
+  *(svfRqIn[id]) = v ;
 }
 
 // filter dry
 static inline void set_dry(const int id, const ParamValue v) {
-  //  *(svfDryIn[id]) = trunc_fr1x32(v);
+  *(svfDryIn[id]) = trunc_fr1x32(v);
 }
 
 // filter wet
 static inline void set_wet(const int id, const ParamValue v) {
-  //  *(svfWetIn[id]) = trunc_fr1x32(v);
+  *(svfWetIn[id]) = trunc_fr1x32(v);
 }
 
 // 16b slew param
