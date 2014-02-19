@@ -8,12 +8,12 @@ ldr_name = aleph-$(module_name)-$(version).ldr
 module_c_obj = waves.o  \
 	init.o \
 	mix.o \
+	filter_svf_waves.o \
 	osc_waves.o \
 	param_set.o \
 	slew_bank.o \
 	$(audio_dir)/conversion.o \
 	$(audio_dir)/filter_1p.o \
-	$(audio_dir)/filter_svf.o \
 	$(audio_dir)/table.o \
 	$(bfin_lib_srcdir)/libfixmath/fix32.o \
 	$(bfin_lib_srcdir)/libfixmath/fix16.o \

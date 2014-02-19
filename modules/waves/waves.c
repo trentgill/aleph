@@ -29,6 +29,7 @@
 // waves
 #include "mix.h"
 #include "osc_waves.h"
+#include "slew_bank.h"
 #include "waves.h"
 
 //-------- data types
@@ -98,14 +99,11 @@ static void calc_frame(void) {
     // calculate oscillator output
     o = oscOut[i] = shr_fr1x32( osc_next( &(osc[i]) ), 1);
 
-    // process SVF param integrators
-    //    slew_exp_calc_frame( cutSlew[i] );
-    //    slew_exp_calc_frame( rqSlew[i] );
-
     // set svf params
     //    filter_svf_set_coeff( &(svf[i]), (cutSlew[i]).y );
     //    filter_svf_set_rq(	  &(svf[i]), (rqSlew[i]).y );
 
+    
     filter_svf_set_coeff( &(svf[i]), *(svfCutOut[i]) );
     filter_svf_set_rq(	  &(svf[i]), *(svfRqOut[i]) );
     // calculate svf output
@@ -123,14 +121,10 @@ static void calc_frame(void) {
     /* 					     ) */
     /* 				  ); */
 
-    /*    
-
-
-
-
-
+   
 //////////
 //////////////
+    
     voiceOut[i] = mult_fr1x32x32(
 				 *(voiceAmpOut[i]),
 				  add_fr1x32(
@@ -144,20 +138,18 @@ static void calc_frame(void) {
 							  )
 					     )
 				  );
-    */
-
-    //// TEST
-    voiceOut[i] = oscOut[i];
+    
+    //// TEST    
+    //    voiceOut[i] = oscOut[i];
   }
 
   // mix outputs
   out[0] = out[1] = out[2] = out[3] = 0;
 
   //  mix_voice(voiceOut, out, (const fract16**)mix_osc_dac);
-  //mix_voice(voiceOut, out, (const fract16*) &(mix_osc_dac[0]) );
-  out[0] = voiceOut[0];
-  out[1] = voiceOut[1];
-
+    mix_voice(voiceOut, out, (const fract16*) &(mix_osc_dac[0]) );
+  //  out[0] = voiceOut[0];
+  //  out[1] = voiceOut[1];
 
   //  mix_adc(in, out, (const fract16*) &(mix_adc_dac[0]) );
   
