@@ -94,37 +94,16 @@ enum params {
   // smoothing parameter for ALL mix values!
   eParamMixSlew,
 
-  /// osc out mix
-  eParam_osc0_dac0,
-  eParam_osc0_dac1,
-  eParam_osc0_dac2,
-  eParam_osc0_dac3,
+  /* /// osc out mix */
+  /* eParam_osc0_dac0, */
+  /* eParam_osc0_dac1, */
+  /* eParam_osc0_dac2, */
+  /* eParam_osc0_dac3, */
 
-  // i/o mix
-  eParam_osc1_dac0,
-  eParam_osc1_dac1,
-  eParam_osc1_dac2,
-  eParam_osc1_dac3,
-
-  eParam_adc0_dac0,		
-  eParam_adc0_dac1,		
-  eParam_adc0_dac2,		
-  eParam_adc0_dac3,		
-
-  eParam_adc1_dac0,		
-  eParam_adc1_dac1,		
-  eParam_adc1_dac2,		
-  eParam_adc1_dac3,		
-
-  eParam_adc2_dac0,		
-  eParam_adc2_dac1,		
-  eParam_adc2_dac2,		
-  eParam_adc2_dac3,		
-
-  eParam_adc3_dac0,		
-  eParam_adc3_dac1,		
-  eParam_adc3_dac2,		
-  eParam_adc3_dac3,		
+  /* eParam_osc1_dac0, */
+  /* eParam_osc1_dac1, */
+  /* eParam_osc1_dac2, */
+  /* eParam_osc1_dac3, */
 
   // cv
   eParam_cvSlew3,
@@ -134,52 +113,53 @@ enum params {
 
   eParam_cvVal3,
   eParam_cvVal2,
-
   eParam_cvVal1,
   eParam_cvVal0,
 
-  // filter 0
-  eParam_cut0,
-  eParam_rq0,
+  // i/o balance
+  eParam_adc0_pan,
+  eParam_adc0_aux,
+  eParam_adc1_pan,
+  eParam_adc1_aux,
+  eParam_adc2_pan,
+  eParam_adc2_aux,
+  eParam_adc3_pan,
+  eParam_adc3_aux,
+
+  // osc output balance
+  eParam_osc0_pan,
+  eParam_osc0_aux,
+  eParam_osc1_pan,
+  eParam_osc1_aux,
 
   // filter 1
-  eParam_cut1,		
   eParam_rq1,		
-
-  //// FIXME: might remove mode blending
-  eParam_low1,		
-  eParam_high1,		
-  eParam_band1,		
-  eParam_notch1,	
-
-  eParam_low0,		
-  eParam_high0,		
-  eParam_band0,		
-  eParam_notch0,	
+  eParam_cut1,		
 
   eParam_fwet1,		
   eParam_fdry1,		
 
+  // filter 0
+  eParam_rq0,
+  eParam_cut0,
 
   eParam_fwet0,		
   eParam_fdry0,		
-
-
 
   // osc parameters
   eParamPm0,
   eParamPm1,
 
   eParamWave1,
-  eParamWave0,
-
   eParamAmp1,
+
+  eParamWave0,
   eParamAmp0,
 
   eParamTune1,
-  eParamTune0,
-
   eParamHz1,
+
+  eParamTune0,
   eParamHz0,
 
   eParamNumParams

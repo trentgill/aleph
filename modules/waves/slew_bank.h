@@ -55,16 +55,20 @@ enum {
 
 /* // 32-bit (long slew is possible) */
 typedef struct _slewBank32 {
-  fract32 c[WAVES_SLEW32_COUNT];
-  fract32 x[WAVES_SLEW32_COUNT];
+  // attempt mem optimization by bank placement
+  /// no, of course you can't place structure mems in different bakns.
+  /// but could instead have static memory for bank variables, 
+  // struct just holds a pointer assigned at init.
+  fract32 c[WAVES_SLEW32_COUNT]; // __attribute__((.section("MEM_L1_DATA_A"))) ;
+  fract32 x[WAVES_SLEW32_COUNT];/// __attribute__((.section("MEM_L1_DATA_B"))) ;
   fract32 y[WAVES_SLEW32_COUNT];
 } SlewBank32;
 
 /* // 16-bit (max slew is ~1s at audio sampling rate) */
 typedef struct _slewBank16 {
   // count should be even for alignment!
-  fract16 c[WAVES_SLEW16_COUNT];
-  fract16 x[WAVES_SLEW16_COUNT];
+  fract16 c[WAVES_SLEW16_COUNT]; // __attribute__((.section("MEM_L1_DATA_A"))) ;;
+  fract16 x[WAVES_SLEW16_COUNT]; //__attribute__((.section("MEM_L1_DATA_B"))) ;;
   fract16 y[WAVES_SLEW16_COUNT];
 } SlewBank16;
 

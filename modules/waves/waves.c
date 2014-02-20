@@ -29,6 +29,7 @@
 // waves
 #include "mix.h"
 #include "osc_waves.h"
+#include "pan.h"
 #include "slew_bank.h"
 #include "waves.h"
 
@@ -212,18 +213,18 @@ void module_init(void) {
  
   param_setup(  eParam_cut1,	PARAM_CUT_DEFAULT);
   param_setup(  eParam_rq1,	PARAM_RQ_DEFAULT);
-  param_setup(  eParam_low1,       PARAM_AMP_6 );
-  param_setup(  eParam_high1,	0 );
-  param_setup(  eParam_band1,	0 );
-  param_setup(  eParam_notch1,	0 );
+  /* param_setup(  eParam_low1,       PARAM_AMP_6 ); */
+  /* param_setup(  eParam_high1,	0 ); */
+  /* param_setup(  eParam_band1,	0 ); */
+  /* param_setup(  eParam_notch1,	0 ); */
   param_setup(  eParam_fwet1,	PARAM_AMP_6 );
   param_setup(  eParam_fdry1,	PARAM_AMP_6 );
   param_setup(  eParam_cut0, 	PARAM_CUT_DEFAULT );
   param_setup(  eParam_rq0, 	PARAM_RQ_DEFAULT );
-  param_setup(  eParam_low0,	FRACT32_MAX >> 1 );
-  param_setup(  eParam_high0,	0 );
-  param_setup(  eParam_band0,	0 );
-  param_setup(  eParam_notch0,	0 );
+  /* param_setup(  eParam_low0,	FRACT32_MAX >> 1 ); */
+  /* param_setup(  eParam_high0,	0 ); */
+  /* param_setup(  eParam_band0,	0 ); */
+  /* param_setup(  eParam_notch0,	0 ); */
   param_setup(  eParam_fwet0,	PARAM_AMP_6 );
   param_setup(  eParam_fdry0,	PARAM_AMP_6 );
 
@@ -242,6 +243,8 @@ void module_init(void) {
   param_setup(  eParamRq0Slew, PARAM_SLEW_DEFAULT );
   param_setup(  eParamRq1Slew, PARAM_SLEW_DEFAULT );
 
+
+  /*
   param_setup(  eParam_adc0_dac0, 	FRACT32_MAX );
   param_setup(  eParam_adc1_dac1,  	FRACT32_MAX );
   param_setup(  eParam_adc2_dac2, 	FRACT32_MAX );
@@ -255,6 +258,7 @@ void module_init(void) {
   param_setup(  eParam_osc1_dac1,  	FRACT32_MAX );
   param_setup(  eParam_osc1_dac2, 	FRACT32_MAX );
   param_setup(  eParam_osc1_dac3, 	FRACT32_MAX );
+  */
 
   param_setup(  eParam_cvVal0, 	FRACT32_MAX >> 1 );
   param_setup(  eParam_cvVal1, 	FRACT32_MAX >> 1 );
