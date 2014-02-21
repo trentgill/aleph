@@ -68,7 +68,7 @@ typedef struct _ComplexOsc {
   // (weird i know, trying for speed with slew bank )
   fract32* incIn;
   fract32* incOut;
-
+x
   //// testing with member variable
   //  fract32 inc;
 
