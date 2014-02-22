@@ -80,7 +80,7 @@ extern SlewBank16 slew16;
 //----------------------------
 //--- extern functions
 // intialize all slew data
-extern void slew_bank_init(void);
+extern void init_slew_bank(void);
   
 // calculate one frame for all 32b smoothers
 extern void slew_bank_32_calc_frame(void);

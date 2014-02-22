@@ -9,7 +9,7 @@ module_c_obj = waves.o  \
 	init.o \
 	mix.o \
 	filter_svf_waves.o \
-	osc_waves.o \
+	osc_bank.o \
 	param_set.o \
 	slew_bank.o \
 	$(audio_dir)/conversion.o \

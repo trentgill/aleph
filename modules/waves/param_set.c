@@ -9,12 +9,14 @@
 
 //-- hz
 static inline void set_hz(const int id, const ParamValue v) {
-  osc_set_hz ( &(osc[id]), v );
+  //  osc_set_hz ( &(osc[id]), v );
+  osc_bank_set_hz(id, v);
 }
 
 //-- tune
 static inline void set_tune(const int id, const ParamValue v) {
-  osc_set_tune ( &(osc[id]), v );
+  // osc_set_tune ( &(osc[id]), v );
+  osc_bank_set_tune(id, v);
 }
 
 //-- voice amp env

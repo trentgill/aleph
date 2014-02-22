@@ -16,7 +16,7 @@ SlewBank32 slew32;
 SlewBank16 slew16;
 
 // intitialize all state variables for both smoother banks
-void slew_bank_init(void) {
+void init_slew_bank(void) {
   int i;
   fract32* c32 = slew32.c;
   fract32* x32 = slew32.x;

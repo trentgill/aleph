@@ -28,7 +28,8 @@
 
 // waves
 #include "mix.h"
-#include "osc_waves.h"
+//#include "osc_waves.h"
+#include "osc_bank.h"
 #include "pan.h"
 #include "slew_bank.h"
 #include "waves.h"
@@ -81,10 +82,9 @@ static inline void param_setup(u32 id, ParamValue v) {
 // frame calculation
 static void calc_frame(void) {
   static u8 i;
-  static fract32 o;
+  //  static fract32 o;
 
   // calculate slewed parameters
-  //// TEST: don't
   slew_bank_16_calc_frame();
   slew_bank_32_calc_frame();
 
@@ -92,13 +92,15 @@ static void calc_frame(void) {
   // mix modulation input
   //  mix_mod();
 
+  osc_bank_calc_frame();
+
   for(i=0; i<WAVES_VOICE_COUNT; ++i) {
 
     // phase mod with fixed 1-frame delay
     //    osc_pm_in( &(osc[i]), pmIn[i] );
 
     // calculate oscillator output
-    o = oscOut[i] = shr_fr1x32( osc_next( &(osc[i]) ), 1);
+    //    o = oscOut[i] = shr_fr1x32( osc_next( &(osc[i]) ), 1);
 
     // set svf params
     //    filter_svf_set_coeff( &(svf[i]), (cutSlew[i]).y );
@@ -108,7 +110,7 @@ static void calc_frame(void) {
     filter_svf_set_coeff( &(svf[i]), *(svfCutOut[i]) );
     filter_svf_set_rq(	  &(svf[i]), *(svfRqOut[i]) );
     // calculate svf output
-    svfOut[i] = filter_svf_next( &(svf[i]), shr_fr1x32(o, 1) );
+    svfOut[i] = filter_svf_next( &(svf[i]), shr_fr1x32(oscOut[i], 1) );
 
     // process amp smoother
     //    slew_exp_calc_frame( ampSlew[i] );
@@ -148,7 +150,7 @@ static void calc_frame(void) {
   out[0] = out[1] = out[2] = out[3] = 0;
 
   //  mix_voice(voiceOut, out, (const fract16**)mix_osc_dac);
-    mix_voice(voiceOut, out, (const fract16*) &(mix_osc_dac[0]) );
+  mix_voice(voiceOut, out, (const fract16*) &(mix_osc_dac[0]) );
   //  out[0] = voiceOut[0];
   //  out[1] = voiceOut[1];
 
@@ -172,10 +174,12 @@ void module_init(void) {
   gModuleData->numParams = eParamNumParams;
 
   // init parameter slew
-  slew_bank_init();
+  init_slew_bank();
 
   // init oscillators
-  init_osc();
+  //  init_osc();
+  init_osc_bank();
+
   // init additional param slew pointers
   init_param_slew();
 
