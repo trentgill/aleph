@@ -20,7 +20,7 @@
 //---- expected parameters for wavetable data
 // how many wavetables
 #define WAVE_TAB_NUM 5
-// size of each table
+// size of each tab
 #define WAVE_TAB_SIZE 	1024
 #define WAVE_TAB_SIZE_1 (WAVE_TAB_SIZE - 1)
 #define WAVE_TAB_MAX16 	(WAVE_TAB_SIZE * FIX16_ONE - 1)
@@ -68,7 +68,7 @@ typedef struct _ComplexOsc {
   // (weird i know, trying for speed with slew bank )
   fract32* incIn;
   fract32* incOut;
-x
+
   //// testing with member variable
   //  fract32 inc;
 

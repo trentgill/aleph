@@ -65,10 +65,10 @@ static inline void osc_calc_pm(ComplexOsc* osc) {
 
 // lookup 
 static inline fract32 osc_lookup(ComplexOsc* osc) {
-  //  u32 idxA = (*(osc->shape)) >> WAVE_TAB_RSHIFT;
+    u32 idxA = (*(osc->shape)) >> WAVE_TAB_RSHIFT;
   /// TEST:
-  u32 idxA = 0;
-  u32 idxB = idxA + 1;
+  //  u32 idxA = 0;
+  //  u32 idxB = idxA + 1;
   
   //  fract32 mul = shr_fr1x32((fract32)( (*(osc->shape)) & WAVE_SHAPE_MASK), WAVE_TAB_LSHIFT);
   // TEST:
