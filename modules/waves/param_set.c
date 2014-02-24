@@ -2,6 +2,7 @@
 
 #include "dac.h"
 #include "module.h"
+#include "osc_bank.h"
 #include "slew_bank.h"
 #include "waves.h"
 

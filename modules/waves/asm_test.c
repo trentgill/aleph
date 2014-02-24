@@ -8,6 +8,12 @@
 #include <fract_base.h>
 #include <fract_math.h>
 
+extern int globalCount;
+int globalCount = 0;
+extern int globalBuf[8];
+int globalBuf[8] = { 0, 0, 0, 0, 0, 0, 0, 0 };
+static int staticBuf[8] = { 0, 0, 0, 0, 0, 0, 0, 0 };
+
 void mix32 (const fract32* src, fract32* dst, const fract32* mix) {
   *dst = add_fr1x32( *dst, mult_fr1x32x32(*src, *mix) );
 }
@@ -36,8 +42,6 @@ bigData_t bigData = {
   .buf = { 0, 0, 0, 0, 0, 0, 0, 0 },
     .str = "stringy"
 };  
-
-<<<<<<< HEAD
 
 
 void mix (fract32* out, const fract32* in, const fract16* mix, int incount, int outcount) {
@@ -71,7 +75,7 @@ void mix_voice (fract32* out, const fract32* in, const fract16* mix) {
     pIn++;
   }
 }
-=======
+
 void copy(int n) {
   int i;
   for(i=0; i<n; i++) {
@@ -96,4 +100,7 @@ void copy_struct(int n) {
   }
 } 
 
->>>>>>> db6b0d959233f899403d8df3792f9d5831ec5f60
+unsigned int  add_ns_s32(signed int a, signed int b) {
+  return a + b;
+}
+

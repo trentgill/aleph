@@ -56,7 +56,7 @@ enum {
 /* // 32-bit (long slew is possible) */
 typedef struct _slewBank32 {
   // attempt mem optimization by bank placement
-  /// no, of course you can't place structure mems in different bakns.
+  /// no, of course you can't place structure mems in different banks.
   /// but could instead have static memory for bank variables, 
   // struct just holds a pointer assigned at init.
   fract32 c[WAVES_SLEW32_COUNT]; // __attribute__((.section("MEM_L1_DATA_A"))) ;
