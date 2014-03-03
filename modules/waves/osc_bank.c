@@ -53,7 +53,6 @@ static fract16 dumdum; // align
 //=================================
 //=== STATIC funcs
 
-
 // calculate increment from hz and ratio, arbitrary osc
 // this is called from parameter set, not at frame calculation
 // so it should be as fast as possible, 
