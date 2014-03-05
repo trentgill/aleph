@@ -142,11 +142,14 @@ void init_osc_bank(void) {
 // set hz
 void osc_bank_set_hz(int i, fix16 v) {
   oscBank.hz[i] = v;
-
+  osc_bank_calc_inc(i);
 }
 
 // set tune
 void osc_bank_set_tune(int i, fix16 v) {
+  oscBank.ratio[i] = v;
+  osc_bank_calc_inc(i);
+
 }
 
 
