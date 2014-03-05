@@ -4,6 +4,10 @@ bees	0.5.0  ! breaks module compatibility !
 - fix hang when attempting to delete system ops	  
 - eliminate class-specific increment functions for operators
 - custom linker script for external SRAM to malloc()
+- new ops: MIDICC, MIDIPITCH, MIDITOUCH
+- NOTEOUT !!! still broken !!!
+- JSON conversion with utils/beekeep
+- 
 
 ----------------
 lines	0.2.0

@@ -86,7 +86,14 @@ void serial_process() {
   int c;
 
   //buffer, try to grab more than one byte if available
-  while(usart_read_char(FTDI_USART,&c) == USART_SUCCESS) {
+  while(usart_read_char(AVR8_USART,&c) == USART_SUCCESS) {
+
+    //////////////////
+    //// TEST: loopback
+    print_dbg_char(c);
+    print_dbg(" ");
+    ///////////////////
+
     // DONE: implement proper framing, ie: http://eli.thegreenplace.net/2009/08/12/framing-in-serial-communications/
     // code 27 is escape
     if(c == 27 && escape == 0) escape = 1;
@@ -131,7 +138,7 @@ void serial_param_info(s32 data) {
 
   /////
   /* FIXME: 
-   need to move this to bees, or move params out of bees, or something...
+     need to move this to bees, or move params out of bees, or something..
    */
   //  bfin_get_param_desc(idx, &p);
 

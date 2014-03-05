@@ -10,7 +10,7 @@
 
  serialization: it is up in the air whether ot ultimately store the entire preset RAM or to choose elements conditionally. certainly the latter if we switch to JSON.
 
-parameters / inputs: presets make no distincation between DSP paraemters and op inputs. the input node list is flattemed, with idx corresponding to the idx as requested from operator (total count is sum of op inputs and reported params.) this stuff should generally be cleaned up throughout the codebase, functionally separating the parameter and input node lists and maybe putting them on separate menus too.
+parameters / inputs: presets make no distincation between DSP paraemters and op inputs. the input node list is flattened, with idx corresponding to the idx as requested from operator (total count is sum of op inputs and reported params.) this stuff should generally be cleaned up throughout the codebase, functionally separating the parameter and input node lists and maybe putting them on separate menus too.
 
 
  */
@@ -166,6 +166,9 @@ void preset_recall(u32 preIdx) {
     if(presets[preIdx].ins[i].enabled) {
       print_dbg("\r\n recalling enabled input in target preset, idx: ");
       print_dbg_ulong(i);
+      print_dbg(", value: 0x");
+      print_dbg_hex(presets[preIdx].ins[i].value);
+
       net_set_in_value( i, presets[preIdx].ins[i].value );
     }
   }
@@ -247,7 +250,7 @@ u8* presets_pickle(u8* dst) {
     /*   dst = pickle_32(presets[i].params[j].enabled, dst); */
     /* } */
     
-    // read name!
+    // pickle name!
     for(j=0; j<PRESET_NAME_LEN; j++) {
       *dst++ = presets[i].name[j];
     }

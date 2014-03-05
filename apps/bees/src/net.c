@@ -273,6 +273,7 @@ void net_deinit(void) {
 
 // clear ops and i/o
 void net_clear_user_ops(void) {
+  /// no...
   net_deinit();
   add_sys_ops();
 }
@@ -863,7 +864,9 @@ io_t net_inc_in_value(s32 inIdx, io_t inc) {
   } else {
     op = net->ops[net->ins[inIdx].opIdx];
 
-    (*(op->inc_fn))(op, net->ins[inIdx].opInIdx, inc);
+    //    (*(op->inc_fn))(op, net->ins[inIdx].opInIdx, inc);
+    op_inc_in_val(op, net->ins[inIdx].opInIdx, inc);
+    
 
     print_dbg(" , result: ");
     print_dbg_hex( net_get_in_value(inIdx));
@@ -959,7 +962,11 @@ u8 net_toggle_in_play(u32 inIdx) {
 
 // set play inclusion for input
 void net_set_in_play(u32 inIdx, u8 val) {
-  net->ins[inIdx].play = val;
+  if(inIdx < net->numIns) {
+    net->ins[inIdx].play = val;
+  } else {
+    net->params[inIdx - net->numIns].play = val;
+  }
 }
 
 // get play inclusion for input
@@ -988,7 +995,10 @@ void net_add_param(u32 idx, const ParamDesc * pdesc) {
   ////////////
   print_dbg("\r\n finished initializing param scaler.");
 
-  net->params[net->numParams].idx = idx; 
+  //// TEST: don't
+  //  net->params[net->numParams].idx = idx; 
+  /////
+
   net->params[net->numParams].play = 1;
 
   //  net->params[net->numParams].preset = 0; 
@@ -1121,8 +1131,8 @@ u8* net_pickle(u8* dst) {
   op_t* op;
   u32 val = 0;
 
-  // store count of operators
-  // (use 4 bytes for alignment)
+  // write count of operators
+  // ( 4 bytes for alignment)
   dst = pickle_32((u32)(net->numOps), dst);
 
   // loop over operators
@@ -1137,10 +1147,8 @@ u8* net_pickle(u8* dst) {
   }
 
   // write input nodes
-  //  for(i=0; i < (net->numIns + net->numParams); ++i) {
-  /// FIXME: doing params is breaking stuff, somehow...!! arg
-
 #if 1
+  //// all nodes, even unused
   for(i=0; i < (NET_INS_MAX); ++i) {
     dst = inode_pickle(&(net->ins[i]), dst);
   }
@@ -1150,17 +1158,18 @@ u8* net_pickle(u8* dst) {
     dst = onode_pickle(&(net->outs[i]), dst);
   }
 #else
-  for(i=0; i < (net->numIns); ++i) {
-    dst = inode_pickle(&(net->ins[i]), dst);
-  }
+  /* for(i=0; i < (net->numIns); ++i) { */
+  /*   dst = inode_pickle(&(net->ins[i]), dst); */
+  /* } */
 
-  // write output nodes
-  for(i=0; i < net->numOuts; ++i) {
-    dst = onode_pickle(&(net->outs[i]), dst);
-  }
+  /* // write output nodes */
+  /* for(i=0; i < net->numOuts; ++i) { */
+  /*   dst = onode_pickle(&(net->outs[i]), dst); */
+  /* } */
 #endif
 
   // write count of parameters
+  // 4 bytes for alignment
   val = (u32)(net->numParams);
   dst = pickle_32(val, dst);
 

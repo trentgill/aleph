@@ -43,7 +43,9 @@ src += \
 	$(bees)/src/ops/op_list8.c \
 	$(bees)/src/ops/op_logic.c \
 	$(bees)/src/ops/op_metro.c \
+	$(bees)/src/ops/op_midi_cc.c \
 	$(bees)/src/ops/op_midi_note.c \
+	$(bees)/src/ops/op_midi_out_note.c \
 	$(bees)/src/ops/op_mul.c \
 	$(bees)/src/ops/op_monome_grid_raw.c \
 	$(bees)/src/ops/op_preset.c \
@@ -84,7 +86,9 @@ src += 	src/app_beekeep.c \
 src += src/json_read_raw.c \
 	src/json_write_raw.c \
 	src/json_read_max.c \
-	src/json_write_max.c
+	src/json_write_max.c \
+	src/json_read_native.c \
+	src/json_write_native.c \
 
 
 # srcs from simulator
@@ -142,7 +146,7 @@ obj = $(addprefix $(build-dir), $(addsuffix .o,$(basename $(src))))
 
 cflags += $(foreach path,$(inc),-I$(path))
 cflags += -std=gnu99
-
+cflags += -D BEEKEEP=1
 $(build-dir)%.o: %.c 
 	echo $(cflags)
 	$(Q)test -d $(dir $@) || mkdir -p $(dir $@)

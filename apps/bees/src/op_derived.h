@@ -25,7 +25,9 @@
 #include "ops/op_list8.h"
 #include "ops/op_logic.h"
 #include "ops/op_metro.h"
+#include "ops/op_midi_cc.h"
 #include "ops/op_midi_note.h"
+#include "ops/op_midi_out_note.h"
 #include "ops/op_mod.h"
 #include "ops/op_monome_grid_raw.h"
 #include "ops/op_mul.h"
@@ -41,8 +43,9 @@
 #include "ops/op_timer.h"
 #include "ops/op_tog.h"
 
-// let's please keep this list alphabetical so we can easily see whether something is included.
-// the things that need to remain chronological are:
+// let's keep this list alphabetical so we can easily see whether something is included.
+ 
+// these things, on the other hand,  should remain chronological:
 // - the class type enumeration in op.h
 // - the class registry array in op.c
 
