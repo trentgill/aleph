@@ -8,9 +8,10 @@
 // bank of wavetables
 const fract32 wavtab[WAVE_TAB_NUM][WAVE_TAB_SIZE];
 
+///----------------------
 // state variables declaration
 OscBank oscBank;
-
+//----------------------
 
 //=========================
 //=== static vars
@@ -58,11 +59,19 @@ static fract16 dumdum; // align
 // so it should be as fast as possible, 
 // but not at expense of per-frame phase calculation.
 static inline void osc_bank_calc_inc(int id) {
+  //// TEST
+  /*
   *(oscIncIn[id]) = fix16_mul(
 			      fix16_mul(oscBank.hz[id], oscBank.ratio[id]), 
 			      WAVES_OSC_INC_1HZ
 			      );
-  
+  */
+
+
+  //////////////
+  *(oscIncIn[id]) = (id ? 0x962fc9 : 0x1c28f5c );
+  /// coarse, integer hz
+  //  *(oscIncIn[id]) = WAVES_OSC_INC_1HZ * (fix16_mul(oscBank.hz[id], oscBank.ratio[id]) >> 16);
 }
 
 // calcualate modulated phase, using current pointers
@@ -96,7 +105,7 @@ static inline void osc_bank_calc_value(void) {
   tabMul0 = sub_fr1x32(FR32_MAX, tabMul1);
 
   // now get the values for each table
-  // each has same int / fract index
+  // each has same int / fract index for interpolation endpoints
   valIdxInt0 =  *phaseMod >> (WAVE_PHASE_IDX_SHIFT);
   valIdxInt1 = (valIdxInt0 + 1) & (WAVE_TAB_SIZE_1);
   valIdxFract = *phaseMod & (WAVE_PHASE_INTERP_MASK);
@@ -135,6 +144,7 @@ void init_osc_bank(void) {
   int i;
   for(i=0; i<WAVES_OSC_COUNT; ++i) {
     oscBank.hz[i] = fix16_from_float(220.0);
+
   }
 }
 
@@ -175,7 +185,6 @@ void osc_bank_calc_frame(void) {
   pm = pmOut;
 
 
-  
   for(i=0; i<WAVES_OSC_COUNT; ++i) {
     // calculate
     osc_bank_calc_phase();

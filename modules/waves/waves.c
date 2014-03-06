@@ -127,7 +127,7 @@ static void calc_frame(void) {
    
 //////////
 //////////////
-    
+    /*
     voiceOut[i] = mult_fr1x32x32(
 				 *(voiceAmpOut[i]),
 				  add_fr1x32(
@@ -141,18 +141,18 @@ static void calc_frame(void) {
 							  )
 					     )
 				  );
-    
+    */
     //// TEST    
-    //    voiceOut[i] = oscOut[i];
+    voiceOut[i] = oscOut[i];
   }
 
   // mix outputs
-  out[0] = out[1] = out[2] = out[3] = 0;
+  //   out[0] = out[1] = out[2] = out[3] = 0;
 
   //  mix_voice(voiceOut, out, (const fract16**)mix_osc_dac);
-  mix_voice(voiceOut, out, (const fract16*) &(mix_osc_dac[0]) );
-  //  out[0] = voiceOut[0];
-  //  out[1] = voiceOut[1];
+  //  mix_voice(voiceOut, out, (const fract16*) &(mix_osc_dac[0]) );
+  out[0] = voiceOut[0];
+  out[1] = voiceOut[1];
 
   //  mix_adc(in, out, (const fract16*) &(mix_adc_dac[0]) );
   
@@ -167,19 +167,19 @@ void module_init(void) {
   // init module/param descriptor
   // intialize local data at start of SDRAM
   data = (wavesData * )SDRAM_ADDRESS;
+
   // initialize moduleData superclass for core routines
   gModuleData = &(data->super);
   strcpy(gModuleData->name, "aleph-waves");
   gModuleData->paramData = data->mParamData;
   gModuleData->numParams = eParamNumParams;
 
+#if 1
   // init parameter slew
   init_slew_bank();
-
   // init oscillators
   //  init_osc();
   init_osc_bank();
-
   // init additional param slew pointers
   init_param_slew();
 
@@ -194,7 +194,7 @@ void module_init(void) {
     /* slew_exp_init(rqSlew[i], PARAM_RQ_DEFAULT); */
     
   }
-
+#endif
 
 
   // dac
