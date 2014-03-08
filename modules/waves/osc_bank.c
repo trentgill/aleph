@@ -16,11 +16,12 @@ OscBank oscBank;
 //=========================
 //=== static vars
 
-/* static fix16 * inc ; */
-/* static fix16 * idx ; */
-/* static fix16 * idxMod ; */
+//// phase is normalized to [0, 0x7fffffff]
+// phase increment
 static fract32* inc;
+// base phase
 static fract32* phase;
+// modulated phase
 static fract32* phaseMod;
 
 // bus pointers
@@ -66,12 +67,13 @@ static inline void osc_bank_calc_inc(int id) {
 			      WAVES_OSC_INC_1HZ
 			      );
   */
-
-
-  //////////////
+  // dumbest
   *(oscIncIn[id]) = (id ? 0x962fc9 : 0x1c28f5c );
+
   /// coarse, integer hz
   //  *(oscIncIn[id]) = WAVES_OSC_INC_1HZ * (fix16_mul(oscBank.hz[id], oscBank.ratio[id]) >> 16);
+
+  //////////////
 }
 
 // calcualate modulated phase, using current pointers

@@ -39,15 +39,15 @@
 #define WAVE_TAB_IDX_SHAPE_MASK (1 << (WAVE_TAB_IDX_SHIFT)) - 1
 // lshift after mask to get fract16 multiplier 
 #define WAVE_TAB_MUL_SHIFT (WAVE_TAB_SEL_BITS) - 1
-// shift normalized phase to get index into wavetable
-#define WAVE_PHASE_IDX_SHIFT 32 - (WAVE_TAB_BITS)
+// shift signed, normalized phase to get index into wavetable
+#define WAVE_PHASE_IDX_SHIFT 31 - (WAVE_TAB_BITS)
 // mask normalized phase to get interpolation coefficient
 #define WAVE_PHASE_INTERP_MASK (1 << (WAVE_PHASE_IDX_SHIFT)) - 1
 // rshift after mask to get fract16 multiplier
-#define WAVE_PHASE_INTERP_SHIFT 16 - (WAVE_TAB_BITS)
+//#define WAVE_PHASE_INTERP_SHIFT 16 - (WAVE_TAB_BITS)
+#define WAVE_PHASE_INTERP_SHIFT ((WAVE_PHASE_IDX_SHIFT) - 16)
 // normalized (32b) phase increment at 1hz
 #define WAVES_OSC_INC_1HZ 0xae3c
-
 
 // state variables data type
 typedef struct _oscBank {

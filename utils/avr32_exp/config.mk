@@ -1,11 +1,11 @@
 # paths are relative to toplevel ASF
 # avr32 core directory
-ALEPH_AVR32 = ../../utils/avr32_blank
+ALEPH_AVR32 = ../../utils/avr32_exp
 # aleph common directory
 ALEPH_COMMON = ../../common
 
-APP = blank
-APP_DIR = ../../utils/avr32_blank
+APP = exp
+APP_DIR = ../../utils/avr32_exp
 
 
 # Target CPU architecture: ap, ucr1, ucr2 or ucr3

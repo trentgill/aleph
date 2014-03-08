@@ -258,11 +258,15 @@ bool uhi_midi_in_run(uint8_t * buf, iram_size_t buf_size,
   print_dbg_ulong((u32) (uhi_midi_dev.ep_in) );
   
 
-  return uhd_ep_run(
+    return uhd_ep_run(
 		    uhi_midi_dev.dev->address,
 		    uhi_midi_dev.ep_in, 
 		    //		    false,  // shortpacket...
 		    //// TEST:
+		    // i think we want this. 
+		    // it says that the driver is to consider transfer complete
+		    // if received packet of size < max.
+		    // this is a common scenario.
 		    true, 
 		    buf, buf_size,
 		    UHI_MIDI_TIMEOUT, 
@@ -280,6 +284,11 @@ bool uhi_midi_out_run(uint8_t * buf, iram_size_t buf_size,
     * For Bulk and Interrupt IN endpoint, it will automatically stop the transfer
     * at the end of the data transfer (received short packet).
     *
+    
+    seems like we don't want this flag on the out endpoint.
+    we'd expect the recieving device can gracefully handle a packet of size < max,
+    and doesn't need an extra packet if we send exactly 64 bytes.
+
    */
   print_dbg("\r\n attempting to run midi output endpoint ; dev address: 0x");
   print_dbg_hex((u32) (uhi_midi_dev.dev->address) );
@@ -289,7 +298,7 @@ bool uhi_midi_out_run(uint8_t * buf, iram_size_t buf_size,
   return uhd_ep_run(
 		    uhi_midi_dev.dev->address,
 		    uhi_midi_dev.ep_out, 
-		    true, // automatic shortpacket for buf < wlen
+		    false, // shortpacket
 		    buf, buf_size,
 		    UHI_MIDI_TIMEOUT, 
 		    callback);

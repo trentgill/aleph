@@ -192,6 +192,7 @@ void uhi_ftdi_enable(uhc_device_t* dev) {
 		   0, 49206,
 		   NULL);
 
+  //.... fixme...
   delay_ms(200);
 
   ftdi_change(dev, true);  
