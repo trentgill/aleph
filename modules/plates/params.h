@@ -67,84 +67,14 @@
 // enumerate parameters
 // the order defined here must be matched in the descriptor !
 enum params {
-
-
-  // xfade time
-  eParamFade0,
-  eParamFade1,
-
-  /// smoothers have to be processed first!
-  ////////////////////////////////
-  //// FIXME: not using these
-  eParamCut0Slew,
-  eParamRq0Slew,
-  eParamLow0Slew,
-  eParamHigh0Slew,
-  eParamBand0Slew,
-  eParamNotch0Slew,
-
-  eParamCut1Slew,
-  eParamRq1Slew,
-  eParamLow1Slew,
-  eParamHigh1Slew,
-  eParamBand1Slew,
-  eParamNotch1Slew,
-  //////////////////
-
-
-  // cv slew
-  eParam_cvSlew0,
-  eParam_cvSlew1,
-  eParam_cvSlew2,
-  eParam_cvSlew3,
-  // adc multiplier slew
-  eParam_adcSlew0,
-  eParam_adcSlew1,
-  eParam_adcSlew2,
-  eParam_adcSlew3,
-  // cv values
-  eParam_cv0,
-  eParam_cv1,
-  eParam_cv2,
-  eParam_cv3,
-  // adc multiplier values
-  eParam_adc0,
-  eParam_adc1,
-  eParam_adc2,
-  eParam_adc3,
-
-
-  // line 1
-  eParam_freq1,   
-  eParam_rq1,     
-  eParam_low1,      
-  eParam_high1,     
-  eParam_band1,     
-  eParam_notch1,    
-  eParam_pos_read1,        
-  eParam_pos_write1,         
-  eParam_run_read1,   
-  eParam_run_write1,      
-  eParam_loop1,     
-  eParam_pre1,           
-  eParam_write1,         
-  eParam_delay1,     
-
-  // line 0
-  eParam_freq0,   
-  eParam_rq0,     
-  eParam_low0,      
-  eParam_high0,     
-  eParam_band0,     
-  eParam_notch0,    
-  eParam_pos_read0,        
-  eParam_pos_write0,         
-  eParam_run_read0,   
-  eParam_run_write0,      
-  eParam_loop0,     
+  eParam_wetMix,             
+  eParam_dryMix,           
+  eParam_decay,
+  eParam_size,
+  eParam_inDamp,
   eParam_pre0,           
-  eParam_write0,         
-  eParam_delay0,     
+  eParam_time,
+  eParam_preDel,     
 
   eParamNumParams
 };

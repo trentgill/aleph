@@ -1,5 +1,5 @@
 /* 
-   SHO.c
+   JUSTN.c
    aleph-bfin
 
    finite difference scheme for a simple harmonic oscillator
@@ -34,7 +34,7 @@
 // customized module data structure
 // this will be located at the top of SDRAM (64MB)
 // all other variables (code, stack, heap) are located in SRAM (64K)
-typedef struct _shoData {
+typedef struct _justnData {
   //... here is where you would put other large data structures.
 
   // for example, a multichannel delay module would need an audio buffer:
@@ -42,7 +42,7 @@ typedef struct _shoData {
 
   // bear in mind that access to SDRAM is significantly slower than SRAM (10-20 cycles!)
   // so don't put anything here that doesn't need the extra space.
-} shoData;
+} justnData;
 
 //-------------------------
 //----- extern vars (initialized here)
@@ -85,7 +85,7 @@ static fract32 dcn = 0x20000000; // 1-sk
 
 // runtime coefficients aka scale factors
 static fract32 sf0 = 0x1fffffff;
-static fract32 sf1 = 0x1fffffff;
+static fract32 sf1 = 0x0fffffff;
 
 // delay registers
 static fract32 z[2] = { 0x26666680, 0x26666680 }; // initial state = 0.3
@@ -142,16 +142,16 @@ u32 module_get_num_params(void) {
 // called each audio frame from codec interrupt handler
 // ( bad, i know, see github issues list )
 void module_process_frame(void) { 
-  static u32 ar1;
-  static u32 br1;
-  static u32 br2;
-  static u32 calc;
-  static fract32 coef;
+  //static u32 ar1;
+  //static u32 br1;
+  //static u32 br2;
+  //static u32 calc;
+  //static fract32 coef;
   
 
-  ar1 = shr_fr1x32(a1, 1);
-  br1 = shr_fr1x32(a2, 1);
-  br2 = shr_fr1x32(a2, 2);
+  //ar1 = shr_fr1x32(a1, 1);
+  //br1 = shr_fr1x32(a2, 1);
+  //br2 = shr_fr1x32(a2, 2);
 
   //coef = 0x7fffffff; // coef = 1 for around 7500Hz
 
@@ -177,8 +177,9 @@ void module_process_frame(void) {
   //out[0] = sub_fr1x32( mult_fr1x32x32( sf0 , z[0] ), mult_fr1x32x32( 0x3ebb9080, z[1] ) );
 
   // let s0k = 0
-  sf1 = sub_fr1x32( 0x7fffffff, shr_fr1x32( a2, 4 ) ); // set (1-s)/(1+s) directly where 0 > s > 0.0625
-  sf0 = mult_fr1x32x32( sub_fr1x32( 0x40000000, mult_fr1x32x32( a1, a1 ) ), sf1 );
+  sf1 = sub_fr1x32( 0x7fffffff, shr_fr1x32( a2, 6 ) ); // set (1-s)/(1+s) directly where 0 > s > 0.0625
+  // remember to divide sf1 by 2 then add 0.5 
+  sf0 = mult_fr1x32x32( sub_fr1x32( 0x40000000, mult_fr1x32x32( a1, a1 ) ), add_fr1x32( 0x40000000, shr_fr1x32( sf1, 1 ) ) );
   //out[0] = sub_fr1x32( mult_fr1x32x32( sf0 , z[0] ), mult_fr1x32x32( 0x20000000, z[1] ) );
   out[0] = sub_fr1x32( mult_fr1x32x32( sf0 , z[0] ), mult_fr1x32x32( shr_fr1x32( sf1, 2 ) , z[1] ) );
 
@@ -235,19 +236,12 @@ void module_set_param(u32 idx, ParamValue v) {
 
     // filter coefficients
   case eParam_a1 :
-    //fc = sub_fr1x32( 0x40000000, mult_fr1x32x32( v, v ));
-
-    // for testing, let s0k=0.1
-    // therefore 
-    //sf0 = 
-    //calc_coeffs();
     a1 = v;
+    calc_coeff0(); // only calculate new sf0 as sf1 stays unchanged
     break;
   case eParam_a2 :
-    //dcp = add_fr1x32( 0x40000000, v );
-    //dcn = sub_fr1x32( 0x40000000, v );
-    //calc_coeffs();
     a2 = v;
+    calc_coeffs(); // calculate both coefficients as they both rely on changes.
     break;
   case eParam_b0 : // just forces the displacement to 0.3 
     z[0] = 0x26666680;
@@ -266,13 +260,11 @@ void module_set_param(u32 idx, ParamValue v) {
   }
 }
 
+void calc_coeff0(void) {
+  sf0 = mult_fr1x32x32( sub_fr1x32( 0x40000000, mult_fr1x32x32( a1, a1 ) ), add_fr1x32( 0x40000000, shr_fr1x32( sf1, 1 ) ) );
+}
+
 void calc_coeffs(void) {
-  // here we perform the divisions to find the scaling factors for the process frame
-  // do this separately to avoid expensive divisions in the runtime frame
-  // could still cause process issue if called repetitively
-
-  // stored in sf0 and sf1
-  sf0 = fc / dcp;
-  sf1 = shr_fr1x32( (dcn / dcp), 2 );
-
+  sf1 = sub_fr1x32( 0x7fffffff, shr_fr1x32( a2, 6 ) ); // set (1-s)/(1+s) directly where 0 > s > 0.0625
+  sf0 = mult_fr1x32x32( sub_fr1x32( 0x40000000, mult_fr1x32x32( a1, a1 ) ), add_fr1x32( 0x40000000, shr_fr1x32( sf1, 1 ) ) );
 }

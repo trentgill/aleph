@@ -35,9 +35,10 @@
 // simple 1-pole integrator
 #include "filter_1p.h"
 #include "buffer.h"
-#include "filter_svf.h"
-#include "filter_ramp.h"
-#include "delayFadeN.h"
+//#include "filter_svf.h"
+//#include "filter_ramp.h"
+//#include "delayFadeN.h"
+#include "allPass.h"
 
 // global declarations for module data
 #include "module.h"
@@ -51,8 +52,10 @@
 //------ static variables
 
 // total SDRAM is 64M
-// each line about 10k frames ~220ms
-#define PLATES_BUF_FRAMES 0x2710
+// each line 32767 frames = ~128kB ~600ms
+      // changed to 0x4a07 = 379 samples * 50
+#define PLATES_BUF_FRAMES 0x00004A07
+#define NPLATES 18
 
 
 // customized module data structure
@@ -70,7 +73,7 @@ typedef struct _platesData {
   ModuleData super;
   //  ParamDesc mParamDesc[eParamNumParams];
   ParamData mParamData[eParamNumParams];
-  volatile fract32 audioBuffer[2][PLATES_BUF_FRAMES];
+  volatile fract32 audioBuffer[NPLATES][PLATES_BUF_FRAMES];
 
 } platesData;
 
@@ -85,64 +88,23 @@ ModuleData* gModuleData;
 //-----------------------bfin_lib/src/
 //------ static variables
 
-/* 
-   here's the actual memory for module descriptor and param data
-   global pointers are to point at these here during module init.
-   we do it in this indirect way, because
-   a) modules have variable param count
-   b) in an extreme case, might need to locate param data in SDRAM
-      ( until recently, SDRAM contained full param descriptors.)
-*/
-
 // pointer to all external memory
 platesData* pPlatesData;
 // delay lines (each has buffer descriptor and read/write taps)
-static delayFadeN plates[2];
-// state variable filters
-static filter_svf svf[2];
+allPass plates[NPLATES];
 
-// these are in SDRAM now
-//static ModuleData super;
-//static ParamData mParamData[eParamNumParams];
+fract32 wetMix = 0;
+fract32 dryMix = 1;
+fract32 decay = 0;
 
-// input values
-static fract32 adcVal[4];
-static filter_1p_lo adcSlew[4];
-static filter_1p_lo svfCutSlew[2]; // buffer filters
-static filter_1p_lo svfRqSlew[2];
 
-//--- crossfade stuff
-/// which tap we are fading towards...
-static u8 fadeTargetRd[2] = { 0, 0 };
-static u8 fadeTargetWr[2] = { 0, 0 };
-
-// crossfade integrators
-/* filter_1p_lo lpFadeRd[2]; */
-/* filter_1p_lo lpFadeWr[2]; */
-static filter_ramp_tog lpFadeRd[2];
-static filter_ramp_tog lpFadeWr[2];
-
-// cv values (16 bits, but use fract32 and audio integrators)
-static fract32 cvVal[4];
-static filter_1p_lo cvSlew[4];
-// current channel to update - see below in process_cv() 
-static u8 cvChan = 0;
-
-// audio output bus
-static fract32 outBus = 0;
-
-///////////////
-// try this out
-/// if set, param changes triggering fade will be ignored if a fade is in progress.
-static const u8 fadeIgnore = 1;
-////////////////
-
+filter_1p_lo inDamp[4];
 
 //-----------------
 //--- static function declaration
 
 // update cv output
-static void process_cv(void);
+//static void process_cv(void);
 
 // small helper function to set parameter initial values
 static inline void param_setup(u32 id, ParamValue v) {
@@ -160,6 +122,7 @@ static inline void param_setup(u32 id, ParamValue v) {
 
 void module_init(void) {
   u8 i;
+  u32 j;
   // init module/params
   pPlatesData = (platesData*)SDRAM_ADDRESS;
 
@@ -171,20 +134,13 @@ void module_init(void) {
   gModuleData->paramData = (ParamData*)pPlatesData->mParamData;
   gModuleData->numParams = eParamNumParams;
 
-  for(i=0; i<2; i++) { // 2 is number of delay buffers
-    delayFadeN_init(&(plates[i]), pPlatesData->audioBuffer[i], PLATES_BUF_FRAMES);
-    filter_svf_init(&(svf[i]));
-
-    filter_1p_lo_init(&(svfCutSlew[i]), 0x3fffffff);
-    filter_1p_lo_init(&(svfRqSlew[i]), 0x3fffffff);
-
-    filter_ramp_tog_init(&(lpFadeRd[i]), 0);
-    filter_ramp_tog_init(&(lpFadeWr[i]), 0);
+  for(i=0; i<NPLATES; i++) { // 2 is number of delay buffers
+    allPass_init(&(plates[i]), pPlatesData->audioBuffer[i], PLATES_BUF_FRAMES);
 
     /* // we really need to zero everything to avoid horrible noise at boot... */
-    /* for(j=0; j<LINES_BUF_FRAMES; ++j) { */
-    /*   pLinesData->audioBuffer[i][j] = 0; */
-    /* } */
+    for(j=0; j<PLATES_BUF_FRAMES; ++j) {
+      pPlatesData->audioBuffer[i][j] = 0;
+    }
 
     //    memset(pLinesData->audioBuffer[i], 0, LINES_BUF_FRAMES * 4);
 
@@ -195,112 +151,34 @@ void module_init(void) {
     /*   pLinesData->audioBuffer[i][j] = 0x00000000;  */
     /* } */
   }
+  for(i=0; i<4; i++) {
+    filter_1p_lo_init( &(inDamp[i]), 0xf );
+  }
 
+  allPass_set_pre(&(plates[10]), 0x4fffffff); // 0.875
+  allPass_set_pre(&(plates[12]), 0x2fffffff); // 0.5
+  allPass_set_pre(&(plates[14]), 0x4fffffff);
+  allPass_set_pre(&(plates[16]), 0x2fffffff);
 
 ////////////////////////
 
 /// setup params with intial values
 
-  param_setup( eParamFade0 , 0x100000 );
-  param_setup( eParamFade1 , 0x100000 );
+  param_setup(  eParam_preDel, 0x00000000 );
+  param_setup(  eParam_time, 0x028F5c28 ); // equals 1x griesinger rates
+  param_setup(  eParam_pre0, 0x3fffffff );
+  param_setup(  eParam_dryMix, 0x3fffffff );
+  param_setup(  eParam_wetMix, 0x3fffffff );
+  param_setup(  eParam_inDamp, 0x0000000f );
+  param_setup(  eParam_size, 0x1fffffff );
+  param_setup(  eParam_decay, 0x1fffffff );
 
-  param_setup(  eParam_loop0,   PARAM_SECONDS_MAX );
-  //param_setup(  eParam_rMul0,   0x10000 );
-  //param_setup(  eParam_rDiv0,   0x10000 );
-  param_setup(  eParam_write0,    FRACT32_MAX );
-  param_setup(  eParam_pre0,    0 );
-  param_setup(  eParam_pos_write0,    0 );
-  param_setup(  eParam_pos_read0,   0 );
-
-  param_setup(  eParam_delay0,    0x4000 );
-
-  param_setup(  eParam_run_read0, 1 );
-  param_setup(  eParam_run_write0, 1 );
-
-  param_setup(  eParam_loop1,   PARAM_SECONDS_MAX );
-  //param_setup(  eParam_rMul1,   0x10000 );
-  //param_setup(  eParam_rDiv1,   0x10000 );
-  param_setup(  eParam_write1,    FRACT32_MAX );
-  param_setup(  eParam_pre1,    0 );
-  param_setup(  eParam_pos_write1,    0 );
-  param_setup(  eParam_pos_read1,   0 );
-
-  param_setup(  eParam_delay1,    0x4000 );
-
-  param_setup(  eParam_run_read1, 1 );
-  param_setup(  eParam_run_write1, 1 );
-
-  param_setup(  eParam_freq1, PARAM_CUT_DEFAULT);
-  param_setup(  eParam_rq1, PARAM_RQ_DEFAULT);
-  param_setup(  eParam_low1,       PARAM_AMP_6 );
-  param_setup(  eParam_high1, 0 );
-  param_setup(  eParam_band1, 0 );
-  param_setup(  eParam_notch1,  0 );
-  //param_setup(  eParam_fwet1, PARAM_AMP_6 );
-  //param_setup(  eParam_fdry1, PARAM_AMP_6 );
-
-  param_setup(  eParam_freq0,   PARAM_CUT_DEFAULT );
-  param_setup(  eParam_rq0,   PARAM_RQ_DEFAULT );
-  param_setup(  eParam_low0,  FRACT32_MAX >> 1 );
-  param_setup(  eParam_high0, 0 );
-  param_setup(  eParam_band0, 0 );
-  param_setup(  eParam_notch0,  0 );
-  //param_setup(  eParam_fwet0, PARAM_AMP_6 );
-  //param_setup(  eParam_fdry0, PARAM_AMP_6 );
-
-  param_setup(  eParamCut0Slew, PARAM_SLEW_DEFAULT );
-  param_setup(  eParamCut1Slew, PARAM_SLEW_DEFAULT );
-  param_setup(  eParamRq0Slew, PARAM_SLEW_DEFAULT );
-  param_setup(  eParamRq1Slew, PARAM_SLEW_DEFAULT );
-
-
-
-
-
-
-
-
-  ////////////////////////
-
-
-
-  // initialize 1pole filters for input attenuation slew
-  filter_1p_lo_init( &(adcSlew[0]), 0 );
-  filter_1p_lo_init( &(adcSlew[1]), 0 );
-  filter_1p_lo_init( &(adcSlew[2]), 0 );
-  filter_1p_lo_init( &(adcSlew[3]), 0 );
-
-  // initialize 1pole filters for cv output slew 
-  filter_1p_lo_init( &(cvSlew[0]), 0 );
-  filter_1p_lo_init( &(cvSlew[1]), 0 );
-  filter_1p_lo_init( &(cvSlew[2]), 0 );
-  filter_1p_lo_init( &(cvSlew[3]), 0 );
-
-
-  // set initial param values
-  // constants are from params.h
-  param_setup(eParam_cv0, 0 );
-  param_setup(eParam_cv1, 0 );
-  param_setup(eParam_cv2, 0 );
-  param_setup(eParam_cv3, 0 );
-
-  // set amp to 1/4 (-12db) with right-shift intrinsic
-  param_setup(eParam_adc0, PARAM_AMP_MAX >> 2 );
-  param_setup(eParam_adc1, PARAM_AMP_MAX >> 2 );
-  param_setup(eParam_adc2, PARAM_AMP_MAX >> 2 );
-  param_setup(eParam_adc3, PARAM_AMP_MAX >> 2 );
-
-  // set slew defaults. the value is pretty arbitrary
-  param_setup(eParam_adcSlew0, PARAM_SLEW_DEFAULT);
-  param_setup(eParam_adcSlew1, PARAM_SLEW_DEFAULT);
-  param_setup(eParam_adcSlew2, PARAM_SLEW_DEFAULT);
-  param_setup(eParam_adcSlew3, PARAM_SLEW_DEFAULT);
-  param_setup(eParam_cvSlew0, PARAM_SLEW_DEFAULT);
-  param_setup(eParam_cvSlew1, PARAM_SLEW_DEFAULT);
-  param_setup(eParam_cvSlew2, PARAM_SLEW_DEFAULT);
-  param_setup(eParam_cvSlew3, PARAM_SLEW_DEFAULT);
-
-
+  //param_setup(  eParam_delay1,    0x4000 );
+  //param_setup(  eParam_pre2,    0 );
+  //param_setup(  eParam_delay2,    0x4000 );
+  //param_setup(  eParam_pre3,    0 );
+  //param_setup(  eParam_delay3,    0x4000 );
+  //param_setup(  eParamCut0Slew, PARAM_SLEW_DEFAULT );
 
 }
 
@@ -320,107 +198,67 @@ u32 module_get_num_params(void) {
 // called each audio frame from codec interrupt handler
 // ( bad, i know, see github issues list )
 void module_process_frame(void) { 
-  static fract32 tmpDel, tmpSvf;
   u8 i;
+  static fract32 tmpLeft, tmpRight, tankLeft, tankRight, ap1l, ap1r, ap2l, ap2r, d1l, d1r;
 
-  tmpDel = 0;
-  tmpSvf = 0;
+    // shift inputs right by 2 bit to add 12dB of headroom
+  tmpLeft = shr_fr1x32( in[0], 2 );
+  tmpRight = shr_fr1x32( in[1], 2 );
 
+    // input damping
+  filter_1p_lo_in( &(inDamp[0]), tmpLeft);
+  filter_1p_lo_in( &(inDamp[1]), tmpRight);
+  tmpLeft = filter_1p_lo_next( &(inDamp[0]));
+  tmpRight = filter_1p_lo_next( &(inDamp[1]));
 
-  for(i=0; i<2; i++) { // 2 is number of buffers
-    // process fade integrator
-    //    lines[i].fadeWr = filter_ramp_tog_next(&(lpFadeWr[i]));
-    plates[i].fadeRd = filter_ramp_tog_next(&(lpFadeRd[i]));
-
-    // process delay line
-    tmpDel = delayFadeN_next( &(plates[i]), in[i]);      
-    // process filters
-    // check integrators for filter params
-    /*
-    if( !(svfCutSlew[i].sync) ) {
-      filter_svf_set_coeff( &(svf[i]), filter_1p_lo_next(&(svfCutSlew[i])) );
-    }
-    if( !(svfRqSlew[i].sync) ) {
-      filter_svf_set_rq( &(svf[i]), filter_1p_lo_next(&(svfRqSlew[i])) );
-    }
-    */
-    tmpSvf = filter_svf_next( &(svf[i]), tmpDel);  
-    // mix
-    //tmpDel = mult_fr1x32x32( tmpDel, mix_fdry[i] ); 
-    //tmpDel = add_fr1x32(tmpDel, mult_fr1x32x32(tmpSvf, mix_fwet[i]) );
-
-    //out_del[i] = tmpSvf; // fully wet output
-    //out[i] = add_fr1x32(in[i], tmpSvf);
-  } // end buffers loop 
-
-  //--- mix outputs
-  
-out[0] = in[0];
-out[1] = in[1];
+    // pre-delay
+  tmpLeft = allPass_next( &(plates[8]), tmpLeft );
+  tmpRight = allPass_next( &(plates[9]), tmpRight );
 
 
-
-  //--- process slew
-/*
-  // 
-  // update filters, calling "class method" on pointer to each
-  adcVal[0] = filter_1p_lo_next( &(adcSlew[0]) );
-  adcVal[1] = filter_1p_lo_next( &(adcSlew[1]) );
-  adcVal[2] = filter_1p_lo_next( &(adcSlew[2]) );
-  adcVal[3] = filter_1p_lo_next( &(adcSlew[3]) );
-*/
-  //--- mix
-
-  // zero the output bus
-  //outBus = 0;
-
-  /* 
-     note the use of fract32 arithmetic intrinsics!
-     these are fast saturating multiplies/adds for 32bit signed fractions in [-1, 1)
-     there are also intrinsics for fr16, mixed modes, and conversions.
-     for details see:
-     http://blackfin.uclinux.org/doku.php?id=toolchain:built-in_functions
-  */
-/*
-  // scale each input and add it to the bus
-  outBus = add_fr1x32( outBus, mult_fr1x32x32(in[0], adcVal[0]) );
-  outBus = add_fr1x32( outBus, mult_fr1x32x32(in[1], adcVal[1]) );
-  outBus = add_fr1x32( outBus, mult_fr1x32x32(in[2], adcVal[2]) );
-  outBus = add_fr1x32( outBus, mult_fr1x32x32(in[3], adcVal[3]) );
-
-  // copy the bus to all the outputs
-  out[0] = outBus;
-  out[1] = outBus;
-  out[2] = outBus;
-  out[3] = outBus;
+    // early reflections: left
+  tmpLeft = allPass_next( &(plates[0]), tmpLeft );
+  tmpLeft = allPass_next( &(plates[1]), tmpLeft );
+  tmpLeft = allPass_next( &(plates[2]), tmpLeft );
+  tmpLeft = allPass_next( &(plates[3]), tmpLeft );
+    // early reflections: right
+  tmpRight = allPass_next( &(plates[4]), tmpRight );
+  tmpRight = allPass_next( &(plates[5]), tmpRight );
+  tmpRight = allPass_next( &(plates[6]), tmpRight );
+  tmpRight = allPass_next( &(plates[7]), tmpRight );
 
 
-  //--- cv
-  process_cv();
-*/
-}
+    // crossfed tank: left
+  ap1l = allPass_next( &(plates[10]), add_fr1x32( tmpLeft, tankRight ) ); // allpass & mixer
+  d1l = allPass_next( &(plates[11]), ap1l ); // delay
+  filter_1p_lo_in( &inDamp[2], d1l ); // damping input
+  tmpLeft = filter_1p_lo_next( &(inDamp[2]) ); //damping output
+  tmpLeft = mult_fr1x32x32(tmpLeft, decay ); // decay scaling
+  ap2l = allPass_next( &(plates[12]), tmpLeft ); // allpass
+  tankLeft = allPass_next( &(plates[13]), ap2l ); // delay
+
+    // crossfed tank: right
+  ap1r = allPass_next( &(plates[14]), add_fr1x32( tmpRight, tankLeft ) ); // allpass & mixer
+  d1r = allPass_next( &(plates[15]), ap1r ); // delay
+  filter_1p_lo_in( &inDamp[3], d1r ); // damping input
+  tmpRight = filter_1p_lo_next( &(inDamp[3]) ); //damping output
+  tmpRight = mult_fr1x32x32(tmpRight, decay ); // decay scaling
+  ap2r = allPass_next( &(plates[16]), tmpRight ); // allpass
+  tankRight = allPass_next( &(plates[17]), ap2r ); // delay
 
 
+    // output mixing & scaling up
+  tmpLeft = add_fr1x32( tankLeft, add_fr1x32( ap1l, negate_fr1x32( add_fr1x32( ap2l, add_fr1x32( d1r, add_fr1x32( ap2r, tankRight ) ) ) ) ) );
+  tmpRight = add_fr1x32( tankRight, add_fr1x32( ap1r, negate_fr1x32( add_fr1x32( ap2r, add_fr1x32( d1l, add_fr1x32( ap2l, tankLeft ) ) ) ) ) );
 
+  tmpLeft = mult_fr1x32x32( tmpLeft, wetMix );
+  tmpRight = mult_fr1x32x32( tmpRight, wetMix );
 
-// check crossfade status of target
-static u8 check_fade_rd(u8 id) {
-  u8 newTarget, oldTarget = fadeTargetRd[id];
-  //  u8 ret;
+  in[0] = mult_fr1x32x32( in[0], dryMix );
+  in[1] = mult_fr1x32x32( in[1], dryMix );
 
-  if(lpFadeRd[id].sync) {
-    // not fading right now, so pick different target and start crossfade
-    newTarget =  oldTarget ^ 1;
-    // copy all tap parameters to target
-    buffer_tapN_copy( &(plates[id].tapRd[oldTarget]) ,  &(plates[id].tapRd[newTarget]) );
-    // start the fade
-    filter_ramp_tog_in(&(lpFadeRd[id]), newTarget);
-    fadeTargetRd[id] = newTarget;
-    return 1;
-  } else {
-    // fade is in progress.
-    return !fadeIgnore;
-  }
+  out[0] = add_fr1x32( tmpLeft, in[0] );
+  out[1] = add_fr1x32( tmpRight, in[1] );
 }
 
 
@@ -428,264 +266,79 @@ static u8 check_fade_rd(u8 id) {
 void module_set_param(u32 idx, ParamValue v) {
   // switch on the param index
   switch(idx) {
-    // cv output values
-  case eParam_cv0 :
-    filter_1p_lo_in( &(cvSlew[0]), v );
-    break;
-  case eParam_cv1 :
-    filter_1p_lo_in( &(cvSlew[1]), v );
-    break;
-  case eParam_cv2 :
-    filter_1p_lo_in( &(cvSlew[2]), v );
-    break;
-  case eParam_cv3 :
-    filter_1p_lo_in( &(cvSlew[3]), v );
 
-    // cv slew values
-    break;
-  case eParam_cvSlew0 :
-   filter_1p_lo_set_slew(&(cvSlew[0]), v);
-    break;
-  case eParam_cvSlew1 :
-    filter_1p_lo_set_slew(&(cvSlew[1]), v);
-    break;
-  case eParam_cvSlew2 :
-    filter_1p_lo_set_slew(&(cvSlew[2]), v);
-    break;
-  case eParam_cvSlew3 :
-    filter_1p_lo_set_slew(&(cvSlew[3]), v);
+  case eParam_preDel :
+    allPass_set_delay_samp(&(plates[8]), mult_fr1x32x32(v, 0x00004A06) );
+    allPass_set_delay_samp(&(plates[9]), mult_fr1x32x32(v, 0x00004A06) );
+
+  case eParam_time :
+    allPass_set_delay_samp(&(plates[0]), mult_fr1x32x32(v, 0x00001BBC));
+    allPass_set_delay_samp(&(plates[1]), mult_fr1x32x32(v, 0x000014EC));
+    allPass_set_delay_samp(&(plates[2]), mult_fr1x32x32(v, 0x00004A06));
+    allPass_set_delay_samp(&(plates[3]), mult_fr1x32x32(v, 0x0000361A));
+
+    allPass_set_delay_samp(&(plates[4]), mult_fr1x32x32(v, 0x00001BBC));
+    allPass_set_delay_samp(&(plates[5]), mult_fr1x32x32(v, 0x000014EC));
+    allPass_set_delay_samp(&(plates[6]), mult_fr1x32x32(v, 0x00004A06));
+    allPass_set_delay_samp(&(plates[7]), mult_fr1x32x32(v, 0x0000361A));
     break;
 
-    // input attenuation values
-  case eParam_adc0 :
-    filter_1p_lo_in( &(adcSlew[0]), v );
-    break;
-  case eParam_adc1 :
-    filter_1p_lo_in( &(adcSlew[1]), v );
-    break;
-  case eParam_adc2 :
-    filter_1p_lo_in( &(adcSlew[2]), v );
-    break;
-  case eParam_adc3 :
-    filter_1p_lo_in( &(adcSlew[3]), v );
-
-    // input attenuation slew values
-    break;
-  case eParam_adcSlew0 :
-   filter_1p_lo_set_slew(&(adcSlew[0]), v);
-    break;
-  case eParam_adcSlew1 :
-    filter_1p_lo_set_slew(&(adcSlew[1]), v);
-    break;
-  case eParam_adcSlew2 :
-    filter_1p_lo_set_slew(&(adcSlew[2]), v);
-    break;
-  case eParam_adcSlew3 :
-    filter_1p_lo_set_slew(&(adcSlew[3]), v);
-    break;
-
-//////////////////////
-
-        // delay line params
-  case eParam_delay0 :
-    if( check_fade_rd(0) ) {
-      delayFadeN_set_delay_sec(&(plates[0]), v,  fadeTargetRd[0]);
-    }
-    break;
-  case eParam_delay1 :
-    if(check_fade_rd(1)) {
-      delayFadeN_set_delay_sec(&(plates[1]), v,  fadeTargetRd[1]);
-    }
-    break;
-  case eParam_loop0 :
-    delayFadeN_set_loop_sec(&(plates[0]), v, 0);
-    delayFadeN_set_loop_sec(&(plates[0]), v, 1);
-    break;
-  case eParam_loop1 :
-    delayFadeN_set_loop_sec(&(plates[1]), v , 0);
-    delayFadeN_set_loop_sec(&(plates[1]), v , 1);
-    break;
-  case eParam_pos_write0 :
-    // check_fade_wr(0);
-    delayFadeN_set_pos_write_sec(&(plates[0]), v,  fadeTargetWr[0]);
-    break;
-  case eParam_pos_write1 :
-    // check_fade_wr(1);
-    delayFadeN_set_pos_write_sec(&(plates[1]), v,  fadeTargetWr[1] );
-    break;
-  case eParam_pos_read0 :
-    if (check_fade_rd(0) ) {
-      delayFadeN_set_pos_read_sec(&(plates[0]), v,  fadeTargetRd[0]);
-    }
-    break;
-  case eParam_pos_read1 :
-    if( check_fade_rd(1) ) {
-      delayFadeN_set_pos_read_sec(&(plates[1]), v,  fadeTargetRd[1]);
-    }
-    break;
-  case eParam_run_write0 :
-    delayFadeN_set_run_write(&(plates[0]), v);
-    break;
-  case eParam_run_write1 :
-    delayFadeN_set_run_write(&(plates[1]), v);
-    break;
-  case eParam_run_read0 :
-    delayFadeN_set_run_read(&(plates[0]), v);
-    break;
-  case eParam_run_read1 :
-    delayFadeN_set_run_read(&(plates[1]), v);
-    break;
-
-
-
-
-
-  case eParam_write0 :
-    /// FIXME: need write level...
-    delayFadeN_set_write(&(plates[0]), v > 0);
-    break;
-  case eParam_write1 :
-    /// FIXME: need write level...gs
-    delayFadeN_set_write(&(plates[1]), v > 0);
-    break;
   case eParam_pre0 :
     if(v == FR32_MAX) {
       // negative == full
-      delayFadeN_set_pre(&(plates[0]), -1);
+      allPass_set_pre(&(plates[0]), -1);
+      allPass_set_pre(&(plates[1]), -1);
+      allPass_set_pre(&(plates[4]), -1);
+      allPass_set_pre(&(plates[5]), -1);
+      allPass_set_pre(&(plates[2]), -1);
+      allPass_set_pre(&(plates[3]), -1);
+      allPass_set_pre(&(plates[6]), -1);
+      allPass_set_pre(&(plates[7]), -1);      
     } else {
-      delayFadeN_set_pre(&(plates[0]), v);
+      allPass_set_pre(&(plates[0]), v);
+      allPass_set_pre(&(plates[1]), v);
+      allPass_set_pre(&(plates[4]), v);
+      allPass_set_pre(&(plates[5]), v);
+      v = mult_fr1x32x32( v, 0x5fffffff); // scale to 3/4
+      allPass_set_pre(&(plates[2]), v );
+      allPass_set_pre(&(plates[3]), v );
+      allPass_set_pre(&(plates[6]), v );
+      allPass_set_pre(&(plates[7]), v );
     }
     break;
-  case eParam_pre1 :
-    if(v == FR32_MAX) {
-      // negative == full
-      delayFadeN_set_pre(&(plates[1]), -1);
-    } else {
-      delayFadeN_set_pre(&(plates[1]), v);
-    }
-    break;
-    // filter params
-  case eParam_freq0 :
-    //    filter_svf_set_coeff(&(svf[0]), v );
-    filter_1p_lo_in(&(svfCutSlew[0]), v);
-    break;
-  case eParam_freq1 :
-    //    filter_svf_set_coeff(&(svf[1]), v );
-    filter_1p_lo_in(&(svfCutSlew[1]), v);
-    break;
-  case eParam_rq0 :
-    //    filter_svf_set_rq(&(svf[0]), v);
-    // incoming param value is 16.16
-    // target is 2.30xs
-    //    filter_svf_set_rq(&(svf[0]), v << 14);
-    filter_1p_lo_in(&(svfRqSlew[0]), v << 14);
-    break;
-  case eParam_rq1 :
-    //    filter_svf_set_rq(&(svf[1]), v);
-    //    filter_svf_set_rq(&(svf[1]), v << 14);
-    filter_1p_lo_in(&(svfRqSlew[1]), v << 14);
-    break;
-  case eParam_low0 :
-    filter_svf_set_low(&(svf[0]), v);
-    break;
-  case eParam_low1 :
-    filter_svf_set_low(&(svf[1]), v);
-    break;
-  case eParam_high0 :
-    filter_svf_set_high(&(svf[0]), v);
-    break;
-  case eParam_high1 :
-    filter_svf_set_high(&(svf[1]), v);
-    break;
-  case eParam_band0 :
-    filter_svf_set_band(&(svf[0]), v);
-    break;
-  case eParam_band1 :
-    filter_svf_set_band(&(svf[1]), v);
-    break;
-  case eParam_notch0 :
-    filter_svf_set_notch(&(svf[0]), v);
-    break;
-  case eParam_notch1 :
-    filter_svf_set_notch(&(svf[1]), v);
-    break;
 
-
+  case eParam_dryMix :
+    dryMix = v;
+    break;
+  case eParam_wetMix :
+    wetMix = v;
+    break;
 
     // param integrators
-  case eParamCut0Slew :
-    filter_1p_lo_set_slew(&(svfCutSlew[0]), v);
-    break;
-  case eParamCut1Slew :
-    filter_1p_lo_set_slew(&(svfCutSlew[1]), v);
-    break;
-
-  case eParamRq0Slew :
-    filter_1p_lo_set_slew(&(svfRqSlew[0]), v);
-    break;
-  case eParamRq1Slew :
-    filter_1p_lo_set_slew(&(svfRqSlew[1]), v);
+  case eParam_inDamp :
+    filter_1p_lo_set_slew(&(inDamp[0]), v);
+    filter_1p_lo_set_slew(&(inDamp[1]), v);
+    filter_1p_lo_set_slew(&(inDamp[2]), v);
+    filter_1p_lo_set_slew(&(inDamp[3]), v);
     break;
 
+  case eParam_size :
+    allPass_set_delay_samp(&(plates[10]), mult_fr1x32x32(v, 0x00000A80));
+    allPass_set_delay_samp(&(plates[11]), mult_fr1x32x32(v, 0x00004594));
+    allPass_set_delay_samp(&(plates[12]), mult_fr1x32x32(v, 0x00001C20));
+    allPass_set_delay_samp(&(plates[13]), mult_fr1x32x32(v, 0x00003A20));
 
-
-    // fade times
-    // FIXME: value is raw ramp increment per sample...
-  case eParamFade0 :
-    filter_ramp_tog_set_inc(&(lpFadeRd[0]), v );
-    //    filter_ramp_tog_set_inc(&(lpFadeWr[0]), v );
+    allPass_set_delay_samp(&(plates[14]), mult_fr1x32x32(v, 0x00000E30));
+    allPass_set_delay_samp(&(plates[15]), mult_fr1x32x32(v, 0x000041E4));
+    allPass_set_delay_samp(&(plates[16]), mult_fr1x32x32(v, 0x00002980));
+    allPass_set_delay_samp(&(plates[17]), mult_fr1x32x32(v, 0x0000316C));
     break;
-  case eParamFade1 :
-    filter_ramp_tog_set_inc(&(lpFadeRd[1]), v );
-    //    filter_ramp_tog_set_inc(&(lpFadeWr[1]), v);
+  
+  case eParam_decay :
+    decay = v;
     break;
-
-
-
-
-
 
   default:
     break;
   }
 }
-
-//----- static function definitions
-
-//// NOTE / FIXME:
-/* CV updates are staggered, each channel on a separate audio frame. 
-   
-   the reason for this is that each channel takes some time to update.
-   for now, we just wait a full frame between channels,
-   and effectively reduce CV output sampling rate by a factor of 4.
-   (as well as changing the effecticve slew time, which is  not great.)
-
-   the more proper way to do this would be:
-   - enable DMA tx interrupt
-   - each ISR calls the next channel to be loaded
-   - last thing audio ISR does is call the first DAC channel to be loaded
-   - cv_update writes to 4x16 volatile buffer
-
-   this could give rise to its own problems:
-   audio frame processing is currently interrupt-driven per frame,
-   so CV tx interrupt could be masked by the next audio frame if the schedule is tight.
-*/
-// update cv output
-void process_cv(void) {
-  // process the current channel
-  // do nothing if the value is stable
-  if( filter_1p_sync( &(cvSlew[cvChan]) ) ) {
-    ;;
-  } else {
-    // update the slew filter and store the value
-      cvVal[cvChan] = filter_1p_lo_next(&(cvSlew[cvChan]));
-      // send the value to the cv driver
-      cv_update( cvChan, cvVal[cvChan] );
-  }
-
-  // update the channel to be processed
-  if(++cvChan == 4) {
-    cvChan = 0;
-  }
-}
-

@@ -1,6 +1,6 @@
 
 # change this to your module name
-module_name = plates
+module_name = sho
 
 # paths to aleph repository sources
 audio = ../../dsp
@@ -11,19 +11,8 @@ version = $(maj).$(min).$(rev)
 ldr_name = aleph-$(module_name)-$(version).ldr
 
 # add sources from here/audio library.
-module_obj = plates.o \
-	$(audio)/allPass.o \
-	$(audio)/buffer.o \
-	$(audio)/conversion.o \
-	$(audio)/delayFadeN.o \
+module_obj = sho.o \
 	$(audio)/filter_1p.o \
-	$(audio)/filter_ramp.o \
-	$(audio)/filter_svf.o \
-	$(audio)/pan.o \
-	$(audio)/table.o \
-	$(bfin)/libfixmath/fix32.o \
-	$(bfin)/libfixmath/fix16.o \
-	$(bfin)/libfixmath/fix16_sqrt.o	
 
 
 # -----  below here, probably dont need to customize.
